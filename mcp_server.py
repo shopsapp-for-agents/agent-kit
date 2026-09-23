@@ -1,0 +1,200 @@
+"""Local stdio MCP bridge to the ShopsApp JSON API.
+
+The hosted ShopsApp service already serves Streamable HTTP MCP at /mcp/. This
+bridge exists for clients that can launch a local MCP process but cannot use a
+remote MCP endpoint. It holds no database and never performs checkout.
+"""
+
+import os
+from typing import Any, Literal
+from urllib.parse import quote, urlsplit
+
+import httpx
+from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
+
+mcp = MCPServer(
+    name="ShopsApp",
+    title="ShopsApp lists",
+    description="Save and read permitted ShopsApp lists; coordinate gifts and return original merchant links.",
+    instructions=(
+        "Read https://shopsapp.com/skill.md before acting. Preserve saved URLs and attribution. "
+        "Ask before reserving a gift. This server cannot purchase an item or handle a wallet."
+    ),
+)
+
+
+def _base_url() -> str:
+    value = os.getenv("SHOPSAPP_BASE_URL", "https://shopsapp.com").rstrip("/")
+    parsed = urlsplit(value)
+    loopback = parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+    if (
+        parsed.scheme not in ({"http", "https"} if loopback else {"https"})
+        or not parsed.netloc
+        or parsed.username
+        or parsed.password
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ToolError("SHOPSAPP_BASE_URL must be an HTTPS origin or a local loopback origin")
+    return value
+
+
+def _client(base_url: str) -> httpx.Client:
+    return httpx.Client(base_url=base_url, timeout=20, follow_redirects=False)
+
+
+def _segment(value: str) -> str:
+    return quote(value, safe="")
+
+
+def _request(
+    method: str,
+    path: str,
+    *,
+    private: bool = False,
+    body: dict[str, Any] | None = None,
+    idempotency_key: str | None = None,
+) -> dict[str, Any]:
+    base_url = _base_url()
+    headers = {"Accept": "application/json", "User-Agent": "shopsapp-agent-kit/0.1"}
+    if private:
+        token = os.getenv("SHOPSAPP_TOKEN", "").strip()
+        if not token:
+            raise ToolError("Private list access requires SHOPSAPP_TOKEN in the MCP host environment")
+        headers["Authorization"] = f"Bearer {token}"
+    if idempotency_key:
+        headers["Idempotency-Key"] = idempotency_key
+    try:
+        with _client(base_url) as client:
+            response = client.request(method, path, headers=headers, json=body)
+    except httpx.RequestError as exc:
+        raise ToolError(f"ShopsApp is unreachable: {type(exc).__name__}") from exc
+    if response.is_redirect:
+        raise ToolError("ShopsApp redirected the request; check SHOPSAPP_BASE_URL")
+    if response.status_code >= 400:
+        detail = "Request failed"
+        try:
+            value = response.json().get("detail")
+            if isinstance(value, str):
+                detail = value[:180]
+        except (ValueError, AttributeError):
+            pass
+        raise ToolError(f"ShopsApp {response.status_code}: {detail}")
+    if response.status_code == 204:
+        return {}
+    try:
+        result = response.json()
+    except ValueError as exc:
+        raise ToolError("ShopsApp returned a non-JSON response") from exc
+    if not isinstance(result, dict):
+        raise ToolError("ShopsApp returned an unexpected JSON response")
+    return result
+
+
+@mcp.tool(structured_output=True, description="Read a person's public profile and public lists by alias.")
+def get_public_profile(alias: str) -> dict[str, Any]:
+    return _request("GET", f"/v1/people/{_segment(alias)}")
+
+
+@mcp.tool(structured_output=True, description="Read a public list by slug.")
+def get_public_list(slug: str) -> dict[str, Any]:
+    return _request("GET", f"/v1/public/lists/{_segment(slug)}")
+
+
+@mcp.tool(structured_output=True, description="List the authenticated owner's shopping and wish lists.")
+def list_my_lists() -> dict[str, Any]:
+    return _request("GET", "/v1/lists", private=True)
+
+
+@mcp.tool(structured_output=True, description="Read a list when the configured account or grant permits it.")
+def get_list(list_id: str) -> dict[str, Any]:
+    return _request("GET", f"/v1/lists/{_segment(list_id)}", private=True)
+
+
+@mcp.tool(structured_output=True, description="Read the authenticated account's alias and profile URL.")
+def get_my_profile() -> dict[str, Any]:
+    return _request("GET", "/v1/me", private=True)
+
+
+@mcp.tool(structured_output=True, description="Create a private or public shopping/wish list for the owner.")
+def create_list(
+    title: str,
+    mode: Literal["wishlist", "shopping"] = "wishlist",
+    visibility: Literal["private", "public"] = "private",
+) -> dict[str, Any]:
+    return _request(
+        "POST",
+        "/v1/lists",
+        private=True,
+        body={"title": title, "mode": mode, "visibility": visibility},
+    )
+
+
+@mcp.tool(structured_output=True, description="Save the exact URL, including existing referral attribution.")
+def capture_url(
+    list_id: str,
+    url: str,
+    title: str,
+    variant: str | None = None,
+    quantity: int = 1,
+    idempotency_key: str | None = None,
+) -> dict[str, Any]:
+    return _request(
+        "POST",
+        "/v1/captures",
+        private=True,
+        body={"list_id": list_id, "url": url, "title": title, "variant": variant, "quantity": quantity},
+        idempotency_key=idempotency_key,
+    )
+
+
+@mcp.tool(structured_output=True, description="Invite a named ShopsApp user to one list.")
+def invite_person(list_id: str, recipient_alias: str, can_reserve: bool = False) -> dict[str, Any]:
+    return _request(
+        "POST",
+        f"/v1/lists/{_segment(list_id)}/shares",
+        private=True,
+        body={"recipient_alias": recipient_alias, "can_reserve": can_reserve},
+    )
+
+
+@mcp.tool(structured_output=True, description="Read invitations addressed to the authenticated account.")
+def list_my_invites() -> dict[str, Any]:
+    return _request("GET", "/v1/me/invites", private=True)
+
+
+@mcp.tool(structured_output=True, description="Accept an invitation addressed to the authenticated account.")
+def accept_list_invite(share_id: str) -> dict[str, Any]:
+    return _request("POST", f"/v1/invites/{_segment(share_id)}/accept", private=True)
+
+
+@mcp.tool(structured_output=True, description="Read lists shared with the authenticated account.")
+def list_shared_with_me() -> dict[str, Any]:
+    return _request("GET", "/v1/me/shared-lists", private=True)
+
+
+@mcp.tool(structured_output=True, description="Reserve one gift unit after the buyer chooses; does not purchase it.")
+def reserve_item(item_id: str, idempotency_key: str | None = None) -> dict[str, Any]:
+    return _request(
+        "POST",
+        f"/v1/items/{_segment(item_id)}/reservations",
+        private=True,
+        body={"quantity": 1},
+        idempotency_key=idempotency_key,
+    )
+
+
+@mcp.tool(structured_output=True, description="Release an abandoned gift reservation.")
+def release_reservation(reservation_id: str) -> dict[str, Any]:
+    return _request("DELETE", f"/v1/reservations/{_segment(reservation_id)}", private=True)
+
+
+@mcp.tool(structured_output=True, description="Get the original saved merchant URL without rewriting it.")
+def get_handoff(item_id: str) -> dict[str, Any]:
+    return _request("GET", f"/v1/items/{_segment(item_id)}/handoff", private=True)
+
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")

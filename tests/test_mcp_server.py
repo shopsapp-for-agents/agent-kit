@@ -1,0 +1,73 @@
+import asyncio
+import json
+
+import httpx
+import pytest
+from mcp.server.mcpserver.exceptions import ToolError
+
+import mcp_server
+
+
+def mock_client(monkeypatch, handler):
+    transport = httpx.MockTransport(handler)
+    monkeypatch.setattr(
+        mcp_server,
+        "_client",
+        lambda base_url: httpx.Client(base_url=base_url, transport=transport, follow_redirects=False),
+    )
+
+
+def test_public_profile_never_sends_configured_token(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "https://shopsapp.com")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_private")
+
+    def handler(request):
+        assert request.url.path == "/v1/people/alice"
+        assert "Authorization" not in request.headers
+        return httpx.Response(200, json={"alias": "alice", "lists": []})
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.get_public_profile("alice")["alias"] == "alice"
+
+
+def test_private_capture_preserves_exact_url_and_idempotency(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "http://127.0.0.1:5174")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_owner")
+    original_url = "https://shop.example/item?tag=creator-20&variant=M%2Fblue#details"
+
+    def handler(request):
+        assert request.url.path == "/v1/captures"
+        assert request.headers["Authorization"] == "Bearer sa_owner"
+        assert request.headers["Idempotency-Key"] == "same-save"
+        assert json.loads(request.content)["url"] == original_url
+        return httpx.Response(201, json={"item": {"url": original_url}})
+
+    mock_client(monkeypatch, handler)
+    result = mcp_server.capture_url("list-id", original_url, "A product", idempotency_key="same-save")
+    assert result["item"]["url"] == original_url
+
+
+def test_private_access_requires_secret_in_host_environment(monkeypatch):
+    monkeypatch.delenv("SHOPSAPP_TOKEN", raising=False)
+    with pytest.raises(ToolError, match="SHOPSAPP_TOKEN"):
+        mcp_server.list_my_lists()
+
+
+def test_bridge_refuses_plain_http_to_remote_host(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "http://shopsapp.com")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_owner")
+    with pytest.raises(ToolError, match="HTTPS origin"):
+        mcp_server.list_my_lists()
+
+
+def test_bridge_does_not_follow_redirects_with_credential(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "https://shopsapp.com")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_owner")
+    mock_client(monkeypatch, lambda request: httpx.Response(302, headers={"Location": "https://other.example"}))
+    with pytest.raises(ToolError, match="redirected"):
+        mcp_server.list_my_lists()
+
+
+def test_mcp_exposes_core_tools():
+    names = {tool.name for tool in asyncio.run(mcp_server.mcp.list_tools())}
+    assert {"get_public_profile", "list_my_lists", "capture_url", "reserve_item", "get_handoff"} <= names
