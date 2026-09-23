@@ -7,6 +7,7 @@ ShopsApp stores product links in shopping and wish lists. It exposes those lists
 | Resource | Path |
 | --- | --- |
 | Agent web view | `/for-agents` |
+| Read/save/verify quickstart | `/quickstart.md` |
 | Capability JSON | `/.well-known/shopsapp.json` |
 | Public skill | `/skill.md` |
 | OpenAPI JSON | `/openapi.json` |
@@ -22,6 +23,7 @@ The public origin is `https://shopsapp.com`. When working against a local checko
 - Agents request pairing with `POST /v1/agent-pairings`, show the owner only the approval URL, and exchange the private request secret after the owner chooses read/write and list scope. The resulting revocable `ak_` credential goes in the HTTP `Authorization: Bearer` header. Never ask for the owner’s `sa_` credential. A scoped list grant may also allow guest access. A private invitation URL alone grants no access; its named recipient must authenticate and accept it.
 - Store credentials in the client's secret store or server configuration. Never put a bearer token in a prompt, chat message, URL, or public document.
 - Respect the `capabilities` and `available_quantity` fields in list JSON. A grant may allow reading without editing or reserving.
+- A newly saved item appears in the owner's list. The owner-only `GET /v1/me/agent-activity` shows which approved agent saved it, even if that agent is later revoked.
 
 ## Common workflows
 

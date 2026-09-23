@@ -4,6 +4,8 @@ ShopsApp is a shopping-list service for people and independent assistants. This 
 
 An assistant can save exact product URLs, read permitted lists, help someone choose a gift, reserve an item, and return the original merchant link. ShopsApp does not search stores, monitor prices, buy products, process payments, or manage wallets. Assistants use their own authorized tools for those tasks and ask the user before spending.
 
+Start with the [read → save → verify quickstart](docs/QUICKSTART.md). It covers REST, hosted MCP, and this repo's stdio bridge, then shows where the owner can confirm which approved agent saved an item.
+
 ## Choose a connection
 
 **Remote MCP:** The ShopsApp service exposes Streamable HTTP at `https://shopsapp.com/mcp/`. The public domain is the intended production origin; until deployment, use the local origin of your ShopsApp installation, such as `http://127.0.0.1:5174/mcp/`. See [MCP setup](docs/MCP.md) for authorization and a protocol probe.
@@ -24,6 +26,10 @@ For private access, first request owner pairing with `start_agent_pairing`, show
 Point an assistant at [SKILL.md](skills/shopsapp/SKILL.md), or copy that file into its skill directory. The service also serves the same skill at `/skill.md` and a directly readable agent page at `/for-agents`. The [starter prompt](connect.md) is client-neutral; replace `{{SHOPSAPP_ORIGIN}}` with the origin the agent can reach.
 
 The skill's central rules are simple: read only lists the user may access, preserve saved URLs and attribution, ask before reserving, and leave checkout to separate authorized tools. Price comparisons and price alerts require the assistant's own research or scheduling capability.
+
+## MCP registry metadata
+
+[`server.json`](server.json) describes the hosted Streamable HTTP endpoint for the official MCP Registry. It is ready for schema validation but **must not be published yet**: the public endpoint and owner-approved credential flow need live HTTPS and client testing first. This manifest describes the remote server only; the local Python bridge is not published to a package registry. After deployment, validate with the official `mcp-publisher validate server.json`, verify that `/mcp/` is reachable and private tools reject requests without an approved credential, then publish with the authorized `shopsapp-for-agents` GitHub organization account. No agent token belongs in the manifest.
 
 If the person asks an assistant to set up a new account, the `start_account_signup` tool can request a verification email after the person approves it. The person opens that email and finishes signup in their own browser. The assistant never receives the emailed link or owner credential. An agent starts a separate pairing request; the person approves the agent’s read or write access and list scope in ShopsApp, and the agent receives a revocable credential. This works only where ShopsApp has signup email delivery configured.
 

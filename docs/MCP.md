@@ -4,6 +4,8 @@ ShopsApp provides a Streamable HTTP MCP endpoint at `https://shopsapp.com/mcp/`.
 
 The [public agent kit](https://github.com/shopsapp-for-agents/agent-kit) also contains a small **stdio MCP bridge** for clients that can launch a local process but cannot connect to a remote MCP URL. The bridge calls the ShopsApp JSON API; it does not store lists or credentials itself.
 
+Follow the [quickstart](QUICKSTART.md) to pair an agent, save one exact URL, and verify the result in the owner's list and agent activity view.
+
 ## Connect securely
 
 - Choose **Streamable HTTP** in a client that supports remote MCP and enter the endpoint URL above. Configure an owner-approved agent or scoped list-grant bearer credential through the client's secure authorization settings. Do not paste a token into the assistant conversation.
