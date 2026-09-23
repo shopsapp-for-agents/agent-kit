@@ -17,8 +17,9 @@ The public origin is `https://shopsapp.com`. When working against a local checko
 
 ## Access rules
 
+- For a new user who asks the agent to begin setup, `POST /v1/agent-signups` with their approved email address requests a verification email. The agent receives only a `check_email` status. The person opens the email and finishes signup in their browser; account credentials are never returned to the agent. This route requires configured signup email delivery.
 - Public profiles at `GET /v1/people/{alias}` and public lists at `GET /v1/public/lists/{slug}` need no credential.
-- Private list calls need an account credential or a scoped list grant in the HTTP `Authorization: Bearer` header. A private invitation URL alone grants no access; its named recipient must authenticate and accept it.
+- Agents request pairing with `POST /v1/agent-pairings`, show the owner only the approval URL, and exchange the private request secret after the owner chooses read/write and list scope. The resulting revocable `ak_` credential goes in the HTTP `Authorization: Bearer` header. Never ask for the owner’s `sa_` credential. A scoped list grant may also allow guest access. A private invitation URL alone grants no access; its named recipient must authenticate and accept it.
 - Store credentials in the client's secret store or server configuration. Never put a bearer token in a prompt, chat message, URL, or public document.
 - Respect the `capabilities` and `available_quantity` fields in list JSON. A grant may allow reading without editing or reserving.
 

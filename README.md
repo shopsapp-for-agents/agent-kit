@@ -17,13 +17,15 @@ uv sync
 SHOPSAPP_BASE_URL=http://127.0.0.1:5174 uv run python mcp_server.py
 ```
 
-Set `SHOPSAPP_TOKEN` in the MCP host's secret or environment configuration when private access is needed. Do not paste a token into a chat, prompt, URL, or repository. The bridge allows plain HTTP only for loopback origins and does not follow redirects with credentials. It exposes public profile/list reads plus owner and permitted sharing, save, reservation, and handoff tools. The hosted server remains the full MCP interface.
+For private access, first request owner pairing with `start_agent_pairing`, show the person the approval URL, then exchange the private request secret after approval. Set the resulting revocable `ak_` token as `SHOPSAPP_TOKEN` in the MCP host’s secret or environment configuration. Do not paste a token into a chat, prompt, URL, or repository. The bridge allows plain HTTP only for loopback origins and does not follow redirects with credentials. It exposes public profile/list reads plus owner and permitted sharing, save, reservation, and handoff tools. The hosted server remains the full MCP interface.
 
 ## Use the skill
 
 Point an assistant at [SKILL.md](skills/shopsapp/SKILL.md), or copy that file into its skill directory. The service also serves the same skill at `/skill.md` and a directly readable agent page at `/for-agents`. The [starter prompt](connect.md) is client-neutral; replace `{{SHOPSAPP_ORIGIN}}` with the origin the agent can reach.
 
 The skill's central rules are simple: read only lists the user may access, preserve saved URLs and attribution, ask before reserving, and leave checkout to separate authorized tools. Price comparisons and price alerts require the assistant's own research or scheduling capability.
+
+If the person asks an assistant to set up a new account, the `start_account_signup` tool can request a verification email after the person approves it. The person opens that email and finishes signup in their own browser. The assistant never receives the emailed link or owner credential. An agent starts a separate pairing request; the person approves the agent’s read or write access and list scope in ShopsApp, and the agent receives a revocable credential. This works only where ShopsApp has signup email delivery configured.
 
 ## Development
 

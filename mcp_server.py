@@ -93,6 +93,42 @@ def _request(
     return result
 
 
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Start email-verified signup after the person approves sending an email. "
+        "Only the person can finish; no credential is returned."
+    ),
+)
+def start_account_signup(email: str) -> dict[str, Any]:
+    return _request("POST", "/v1/agent-signups", body={"email": email})
+
+
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Request owner approval for this agent. Show only approval_url to the person; keep request_secret private."
+    ),
+)
+def start_agent_pairing(agent_name: str, requested_access: Literal["read", "write"] = "read") -> dict[str, Any]:
+    return _request(
+        "POST",
+        "/v1/agent-pairings",
+        body={"agent_name": agent_name, "requested_access": requested_access},
+    )
+
+
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Exchange a private pairing request secret after the person approves. "
+        "Store the returned agent credential securely."
+    ),
+)
+def exchange_agent_pairing(request_secret: str) -> dict[str, Any]:
+    return _request("POST", "/v1/agent-pairings/exchange", body={"request_secret": request_secret})
+
+
 @mcp.tool(structured_output=True, description="Read a person's public profile and public lists by alias.")
 def get_public_profile(alias: str) -> dict[str, Any]:
     return _request("GET", f"/v1/people/{_segment(alias)}")

@@ -30,6 +30,36 @@ def test_public_profile_never_sends_configured_token(monkeypatch):
     assert mcp_server.get_public_profile("alice")["alias"] == "alice"
 
 
+def test_agent_signup_sends_email_request_without_account_token(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "https://shopsapp.com")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_private")
+
+    def handler(request):
+        assert request.url.path == "/v1/agent-signups"
+        assert "Authorization" not in request.headers
+        assert json.loads(request.content) == {"email": "alice@example.com"}
+        return httpx.Response(202, json={"status": "check_email"})
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.start_account_signup("alice@example.com") == {"status": "check_email"}
+
+
+def test_agent_pairing_starts_without_owner_token(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "https://shopsapp.com")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_private")
+
+    def handler(request):
+        assert request.url.path == "/v1/agent-pairings"
+        assert "Authorization" not in request.headers
+        assert json.loads(request.content) == {"agent_name": "My assistant", "requested_access": "write"}
+        return httpx.Response(
+            201, json={"approval_url": "https://shopsapp.com/app?pair=1", "request_secret": "pr_secret"}
+        )
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.start_agent_pairing("My assistant", "write")["request_secret"] == "pr_secret"
+
+
 def test_private_capture_preserves_exact_url_and_idempotency(monkeypatch):
     monkeypatch.setenv("SHOPSAPP_BASE_URL", "http://127.0.0.1:5174")
     monkeypatch.setenv("SHOPSAPP_TOKEN", "sa_owner")
@@ -70,4 +100,13 @@ def test_bridge_does_not_follow_redirects_with_credential(monkeypatch):
 
 def test_mcp_exposes_core_tools():
     names = {tool.name for tool in asyncio.run(mcp_server.mcp.list_tools())}
-    assert {"get_public_profile", "list_my_lists", "capture_url", "reserve_item", "get_handoff"} <= names
+    assert {
+        "start_account_signup",
+        "start_agent_pairing",
+        "exchange_agent_pairing",
+        "get_public_profile",
+        "list_my_lists",
+        "capture_url",
+        "reserve_item",
+        "get_handoff",
+    } <= names
