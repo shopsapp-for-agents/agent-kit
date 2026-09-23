@@ -139,6 +139,30 @@ def get_public_list(slug: str) -> dict[str, Any]:
     return _request("GET", f"/v1/public/lists/{_segment(slug)}")
 
 
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Explore opt-in public saves. Days: 7 or 30; optional category: fashion, home, "
+        "tech, beauty, books, hobbies, food, or other. Counts are saves, not sales."
+    ),
+)
+def get_trending(days: int = 7, category: str | None = None) -> dict[str, Any]:
+    params = f"days={days}"
+    if category:
+        params += f"&category={_segment(category)}"
+    return _request("GET", f"/v1/trending?{params}")
+
+
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Find opt-in public saves linked by a submitted, checksum-valid UPC/EAN/GTIN. These are not verified offers."
+    ),
+)
+def get_public_product(gtin: str) -> dict[str, Any]:
+    return _request("GET", f"/v1/products/{_segment(gtin)}")
+
+
 @mcp.tool(structured_output=True, description="List the authenticated owner's shopping and wish lists.")
 def list_my_lists() -> dict[str, Any]:
     return _request("GET", "/v1/lists", private=True)
@@ -168,12 +192,19 @@ def create_list(
     )
 
 
-@mcp.tool(structured_output=True, description="Save the exact URL, including existing referral attribution.")
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Save the exact URL, including referral tags. Optional GTIN must come from product data, never a guess."
+    ),
+)
 def capture_url(
     list_id: str,
     url: str,
     title: str,
     variant: str | None = None,
+    category: str = "other",
+    gtin: str | None = None,
     quantity: int = 1,
     idempotency_key: str | None = None,
 ) -> dict[str, Any]:
@@ -181,7 +212,15 @@ def capture_url(
         "POST",
         "/v1/captures",
         private=True,
-        body={"list_id": list_id, "url": url, "title": title, "variant": variant, "quantity": quantity},
+        body={
+            "list_id": list_id,
+            "url": url,
+            "title": title,
+            "variant": variant,
+            "category": category,
+            "gtin": gtin,
+            "quantity": quantity,
+        },
         idempotency_key=idempotency_key,
     )
 

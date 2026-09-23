@@ -23,6 +23,8 @@ curl -sS https://shopsapp.com/mcp/ \
 
 The hosted server exposes owner, public, sharing, grant, reservation, and handoff tools. The stdio bridge includes the main save, read, sharing, reservation, and handoff paths. Read the tool descriptions returned by your connected server rather than assuming that every client can authorize every tool.
 
+Both servers expose `get_trending` for opt-in public saves and `get_public_product` for public saves sharing a submitted GTIN. `capture_url` accepts optional `category` and `gtin` arguments. Use a GTIN only when it comes from product data, not a guess based on the URL. A matching number is a research lead, not a verified retailer offer.
+
 ## Permission and attribution rules
 
 An `sa_` account token belongs to the person and stays in their browser. Agents request pairing and receive an `ak_` credential with owner-approved read/write and optional list scope. The owner can revoke it. An `sg_` guest grant is scoped to one list and may permit reservations. Share or grant revocation stops later reads and actions. Never place either credential in a URL or prompt. `get_handoff` returns the original saved merchant URL, including existing affiliate attribution; do not replace it or simulate a referral click. ShopsApp has no payment or wallet tool.

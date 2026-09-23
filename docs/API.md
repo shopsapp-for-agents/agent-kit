@@ -15,7 +15,10 @@ Use [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.jso
 | Review agent saves | `GET /v1/me/agent-activity` | Owner only; most recent 50 saves |
 | Read a public profile | `GET /v1/people/{alias}` | Public |
 | Read a public list | `GET /v1/public/lists/{slug}` | Public |
+| Explore opt-in public saves | `GET /v1/trending?days=7&category=home` | Public; `days` is 7 or 30, category optional |
+| Find matching public saves by GTIN | `GET /v1/products/{gtin}` | Public; only separately opted-in lists, format-checked identifier |
 | List your lists | `GET /v1/lists` | Account |
+| Change public list discovery | `PATCH /v1/lists/{list_id}/discovery` | Owner only; body `{"discoverable":true}`; public list only |
 | Read one list | `GET /v1/lists/{list_id}` | Owner or permitted grant |
 | Save an exact URL | `POST /v1/captures` | Owner or approved write agent |
 | Create a named invitation | `POST /v1/lists/{list_id}/shares` | Owner |
@@ -25,5 +28,9 @@ Use [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.jso
 | Get merchant handoff | `GET /v1/items/{item_id}/handoff` | Permitted viewer |
 
 Private requests use `Authorization: Bearer <credential>` in the HTTP header. Agents should use owner-approved `ak_` credentials. Never request the owner’s `sa_` credential. A list grant is scoped to one list. The service intentionally returns 404 for a private list the caller cannot read, so do not infer that it exists. A gift reservation reduces `available_quantity` for other buyers but does not purchase anything. The original saved URL is returned unchanged by the handoff route.
+
+`POST /v1/captures` accepts optional `category` (`fashion`, `home`, `tech`, `beauty`, `books`, `hobbies`, `food`, `other`) and `gtin` (8, 12, 13, or 14 digits with a valid check digit). A supplied GTIN is zero-padded to GTIN-14 and links saves to one product identity across merchants. The item JSON includes a product reference with a `/v1/products/{gtin}` URL for opted-in public matches. ShopsApp checks the number's format, not whether the merchant's claim is genuine. Do not guess a GTIN from a URL or title. Items without one remain separate, and the exact saved merchant URLs are never replaced. Older items default to `other`.
+
+Trending includes only saves on public lists whose owners separately enabled discovery. New lists are not discoverable by default. Its JSON gives total saves, category counts, and the latest 24 opted-in items for the requested window and category. It is a view of saves, not orders or verified demand.
 
 For retryable writes, use `Idempotency-Key` when the route accepts it. Send a stable key for the same logical save or reservation, rather than creating a new one after a timeout. Agent-save activity records the approved credential behind a successful new capture; a retry of the same capture does not add another event. Activity remains owner-visible after revocation. See the [quickstart](QUICKSTART.md), [agent guide](AGENT-GUIDE.md), and [MCP setup](MCP.md) for end-to-end workflows.

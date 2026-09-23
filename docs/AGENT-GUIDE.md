@@ -12,6 +12,8 @@ ShopsApp stores product links in shopping and wish lists. It exposes those lists
 | Public skill | `/skill.md` |
 | OpenAPI JSON | `/openapi.json` |
 | Streamable HTTP MCP | `/mcp/` |
+| Opt-in public trends | `/v1/trending` |
+| Public GTIN matches | `/v1/products/{gtin}` |
 | Shared starter prompt | `/connect.md` |
 
 The public origin is `https://shopsapp.com`. When working against a local checkout, use its local origin instead. Start with capability JSON rather than assuming a feature exists.
@@ -27,10 +29,11 @@ The public origin is `https://shopsapp.com`. When working against a local checko
 
 ## Common workflows
 
-1. **Save a find:** Read the owner's lists, ask which one to use if unclear, and call `capture_url` with the exact URL. Preserve any creator or affiliate parameters and fragments. Use a stable idempotency key on retries.
+1. **Save a find:** Read the owner's lists, ask which one to use if unclear, and call `capture_url` with the exact URL. Preserve any creator or affiliate parameters and fragments. Include a category if known; use `other` when uncertain. Include a GTIN/UPC/EAN only when the retailer or product data actually provides it. A valid check digit supports product matching across stores but does not verify the merchant's product claim. Use a stable idempotency key on retries.
 2. **Research a purchase:** Read the chosen list, then use your own shopping tools to compare the same variant across sellers. Include shipping, return terms, and the observation time. Do not invent a live price, stock status, or price history.
 3. **Watch an item:** If your agent has scheduled browsing and the user requests it, check for a price drop or restock and report the source and time. ShopsApp itself only stores the item.
 4. **Choose a gift:** Read a public or permitted shared list, suggest available items, and ask the buyer before reserving one. A reservation coordinates with other list viewers; it is not a purchase.
 5. **Hand off:** Call `get_handoff` and return `destination_url` unchanged. A separate commerce agent may use its own authorized checkout tools after the user approves spending. Do not rewrite tracking or claim a commission.
+6. **Explore trends:** Call `get_trending` or `GET /v1/trending` for the last 7 or 30 days. The results contain only saves from public lists whose owners opted into discovery; counts represent saved links, not sales.
 
 The full request and response contract is in [OpenAPI JSON](https://shopsapp.com/openapi.json). See [MCP setup](MCP.md) for transport and tool details.

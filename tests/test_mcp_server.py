@@ -77,6 +77,36 @@ def test_private_capture_preserves_exact_url_and_idempotency(monkeypatch):
     assert result["item"]["url"] == original_url
 
 
+def test_trending_is_public_and_capture_passes_product_identity(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_BASE_URL", "https://shopsapp.com")
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_agent")
+
+    def handler(request):
+        if request.url.path == "/v1/trending":
+            assert "Authorization" not in request.headers
+            assert request.url.params["days"] == "30"
+            assert request.url.params["category"] == "home"
+            return httpx.Response(200, json={"total_saves": 1, "items": []})
+        if request.url.path == "/v1/products/036000291452":
+            assert "Authorization" not in request.headers
+            return httpx.Response(200, json={"gtin14": "00036000291452", "public_save_count": 2})
+        assert request.url.path == "/v1/captures"
+        assert request.headers["Authorization"] == "Bearer ak_agent"
+        assert json.loads(request.content)["category"] == "home"
+        assert json.loads(request.content)["gtin"] == "036000291452"
+        return httpx.Response(201, json={"item": {"product": {"gtin14": "00036000291452"}}})
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.get_trending(30, "home")["total_saves"] == 1
+    assert mcp_server.get_public_product("036000291452")["public_save_count"] == 2
+    assert (
+        mcp_server.capture_url("list-id", "https://shop.example/item", "A lamp", category="home", gtin="036000291452")[
+            "item"
+        ]["product"]["gtin14"]
+        == "00036000291452"
+    )
+
+
 def test_private_access_requires_secret_in_host_environment(monkeypatch):
     monkeypatch.delenv("SHOPSAPP_TOKEN", raising=False)
     with pytest.raises(ToolError, match="SHOPSAPP_TOKEN"):

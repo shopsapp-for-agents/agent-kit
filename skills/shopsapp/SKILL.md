@@ -26,10 +26,12 @@ After approval, call `exchange_agent_pairing` or `POST /v1/agent-pairings/exchan
 ## Owner workflow
 
 1. Use `list_my_lists` to find the owner's list, or `create_list` when asked to make one.
-2. When the user shares a URL, call `capture_url` with the exact URL, an accurate title, optional variant and quantity, and a stable idempotency key if retrying. Preserve the original URL, including any existing affiliate or tracking code. Do not follow it and substitute a canonical URL.
+2. When the user shares a URL, call `capture_url` with the exact URL, an accurate title, optional variant and quantity, a category if known, and a stable idempotency key if retrying. Use `other` when the category is unclear. Include a GTIN/UPC/EAN only if it is actually supplied by trustworthy product data; never invent one. A valid check digit is not proof that the seller's product claim is correct. Preserve the original URL, including any existing affiliate or tracking code. Do not follow it and substitute a canonical URL.
    After saving, the owner can confirm the item in their list and see your name under **API & MCP → Recent agent saves**. Do not claim success if the API did not return a saved item.
 3. Prefer `invite_person` with the recipient's claimed alias for another ShopsApp user. The invite URL contains only an opaque invitation ID; the recipient must authenticate and accept it before their account or agent can read the list. Share that URL with the intended recipient, but do not imply that possession of the link grants access. Use `can_reserve=true` only for a wishlist when the recipient should be able to claim gifts. The owner can revoke a share.
 4. For a guest without an account, create a one-list grant with the narrowest useful capability and deliver its one-time secret through a secure channel. The owner can revoke a grant.
+5. To explore public saves, call `get_trending` for 7 or 30 days and optionally a category. Only separately opted-in public lists appear. Never infer private-list activity from those counts.
+6. If an item has a GTIN, `get_public_product` can find other opted-in public saves with that identifier. Treat them as leads for research, not verified offers or proof that the merchant labeled the item correctly.
 
 ## Gift buyer workflow
 
