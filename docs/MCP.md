@@ -33,11 +33,9 @@ The hosted server exposes owner, public, sharing, grant, reservation, and handof
 | Find saved items or birthday preferences | `search_accessible_items`, `get_list` |
 | Save a find | `capture_url` |
 | Coordinate a gift | `reserve_item`, `release_reservation`, `get_commerce_handoff` |
-| Monitor a saved non-grocery product | `watch_item`, `list_watches`, `list_alerts`, `stop_watch` |
-| Supply an independently observed price | `submit_price_observation` |
 | Prepare groceries | `set_recipe_ingredients`, `create_grocery_handoff` |
 
-The legacy read/save tools remain for compatibility. Watches automatically check supported direct Shopify links with an explicit variant ID; other merchants need observations supplied by an authorized agent. Alerts are in-app, not email. Grocery handoffs contain ingredients and provider mappings, not local prices, product images, or an existing cart. An Instacart `products_link` mapping creates a shopping-page link only; a user's own integration must handle matching and cart creation. `find_products` reports affiliate feeds as coming soon, not fabricated search results.
+The legacy read/save tools remain for compatibility. Price and stock checks, scheduling, and notifications belong to the person's own agent. ShopsApp does not run watches or alerts. Grocery handoffs contain ingredients and provider mappings, not local prices, product images, or an existing cart. An Instacart `products_link` mapping creates a shopping-page link only; a user's own integration must handle matching and cart creation. `find_products` reports affiliate feeds as coming soon, not fabricated search results.
 
 Both servers expose `get_trending` for opt-in public saves and `get_public_product` for public saves sharing a submitted GTIN. `capture_url` accepts optional `category` and `gtin` arguments. Use a GTIN only when it comes from product data, not a guess based on the URL. A matching number is a research lead, not a verified retailer offer.
 

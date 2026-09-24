@@ -11,7 +11,6 @@ ShopsApp holds wishlists and shopping lists for people and their independent ass
 - Permissioned recipe search: `GET /v1/recipes?q=...`
 - Link resolution: `GET /v1/resolve?url=...`
 - Permission-scoped search: `GET /v1/search/lists`, `GET /v1/search/items`
-- Durable non-grocery watches and in-app alerts: `/v1/watches`, `/v1/alerts`
 - Structured grocery preparation: `POST /v1/recipes/{item_id}/grocery-handoff` (no cart or order)
 - OAuth discovery: `/.well-known/oauth-protected-resource`
 - Recipe ingredient handoff for external grocery agents: `GET /v1/recipes/{item_id}/grocery-handoff`
@@ -32,4 +31,4 @@ Authenticate by sending `Authorization: Bearer <token>` to MCP or REST. An `sa_`
 
 Configure bearer credentials securely outside the chat. If your assistant cannot send the required Authorization header, explain that access is unavailable through that connection; never ask for the token in conversation.
 
-OAuth PKCE is available for remote MCP clients; legacy pairing remains supported. Shared lists require separate owner consent and human-accepted invitations. Automatic price checks support exact Shopify variants; other merchants require agent-supplied observations. Grocery matching, images, local prices and cart creation belong to the buyer's grocery connection. Affiliate product feeds and cross-store comparison are coming soon.
+OAuth PKCE is available for remote MCP clients; legacy pairing remains supported. Shared lists require separate owner consent and human-accepted invitations. If the person asks for price or stock monitoring, use your own shopping tools and scheduling; ShopsApp does not run checks or alerts. Confirm that a recurring task was actually created before promising one. Grocery matching, images, local prices and cart creation belong to the buyer's grocery connection. Affiliate product feeds and cross-store comparison are coming soon.

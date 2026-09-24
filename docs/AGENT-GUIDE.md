@@ -1,6 +1,6 @@
 # ShopsApp agent guide
 
-ShopsApp stores product links in shopping and wish lists. JSON and MCP tools let assistants resolve links, search permitted lists, coordinate gifts, watch supported products, and prepare groceries. It never creates orders or handles a wallet. Affiliate product feeds and cross-store comparisons are coming soon. Use your own authorized tools for broader shopping research or a purchase, and get the user's approval before spending.
+ShopsApp stores product links in shopping and wish lists. JSON and MCP tools let assistants resolve links, search permitted lists, coordinate gifts, and prepare groceries. It never creates orders or handles a wallet. Affiliate product feeds and cross-store comparisons are coming soon. Use your own authorized tools for broader shopping research or a purchase, and get the user's approval before spending.
 
 ## Discover the service
 
@@ -31,7 +31,7 @@ The public origin is `https://shopsapp.com`. When working against a local checko
 
 1. **Save a find:** Read the owner's lists, ask which one to use if unclear, and call `capture_url` with the exact URL. Preserve any creator or affiliate parameters and fragments. Include a category if known; use `other` when uncertain. Include a GTIN/UPC/EAN only when the retailer or product data actually provides it. A valid check digit supports product matching across stores but does not verify the merchant's product claim. Use a stable idempotency key on retries.
 2. **Research a purchase:** Read the chosen list, then use your own shopping tools to compare the same variant across sellers. Include shipping, return terms, and the observation time. Do not invent a live price, stock status, or price history.
-3. **Watch an item:** At the user's request, call `watch_item` for a saved non-grocery product. Automatic Shopify checks require its exact variant ID and the merchant's default-market currency. Other stores require timestamped observations from your own tools through `submit_price_observation`; do not claim they are automatically checked. Watches survive agent disconnection; `stop_watch` stops them. Check `list_alerts` and observation freshness. Alerts appear in ShopsApp, not email; shipping is excluded.
+3. **Watch an item:** At the user's request, use your own shopping tools and scheduler to monitor the saved exact variant in their local market. Send alerts through your agent. Confirm that your scheduler accepted the task before promising ongoing checks. ShopsApp does not check merchants or send alerts; report source, currency, shipping and observation time.
 4. **Choose a gift:** Read a public or permitted shared list, suggest available items, and ask the buyer before reserving one. A reservation coordinates with other list viewers; it is not a purchase.
 5. **Hand off:** Call `get_handoff` and return `destination_url` unchanged. A separate commerce agent may use its own authorized checkout tools after the user approves spending. Do not rewrite tracking or claim a commission.
 6. **Explore trends:** Call `get_trending` or `GET /v1/trending` for the last 7 or 30 days. The results contain only saves from public lists whose owners opted into discovery; counts represent saved links, not sales.

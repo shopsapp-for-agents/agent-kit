@@ -2,7 +2,7 @@
 
 ShopsApp is a shopping-list service for people and independent assistants. This public kit contains the [ShopsApp skill](skills/shopsapp/SKILL.md), [agent guide](docs/AGENT-GUIDE.md), [JSON API guide](docs/API.md), [MCP guide](docs/MCP.md), a [shared starter prompt](connect.md), and a local stdio MCP bridge for clients that cannot connect to remote MCP servers.
 
-An assistant can save exact product URLs, search permitted lists, coordinate gifts, watch supported non-grocery products, and prepare structured grocery ingredients. Affiliate product feeds and cross-store comparisons are coming soon. ShopsApp never creates carts, buys products, processes payments, or manages wallets; grocery selection, images, local prices and checkout belong to the buyer's own provider connection.
+An assistant can save exact product URLs, search permitted lists, coordinate gifts, and prepare structured grocery ingredients. The person's own agent can monitor saved products with its own tools, scheduler, and notifications; ShopsApp runs no price or stock watches. Affiliate product feeds and cross-store comparisons are coming soon. ShopsApp never creates carts, buys products, processes payments, or manages wallets; grocery selection, images, local prices and checkout belong to the buyer's own provider connection.
 
 Recipe lists store exact source URLs and ingredient strings. `search_my_recipes` finds accessible recipes by title or ingredient, and `get_recipe_grocery_handoff` returns JSON for an authorized external grocery agent. An approved write agent can add verified ingredients with `update_recipe`. Instacart's hosted recipe page is one possible external handoff; ShopsApp does not create a cart or order.
 
@@ -29,7 +29,7 @@ For private access, first request owner pairing with `start_agent_pairing`, show
 
 Point an assistant at [SKILL.md](skills/shopsapp/SKILL.md), or copy that file into its skill directory. The service also serves the same skill at `/skill.md` and a directly readable agent page at `/for-agents`. The [starter prompt](connect.md) is client-neutral; replace `{{SHOPSAPP_ORIGIN}}` with the origin the agent can reach.
 
-The skill's central rules are simple: read only permitted lists, preserve saved URLs and attribution, ask before reserving, and leave checkout to separate authorized tools. Automatic watches support exact Shopify variants in the merchant's default market; other stores need observations from the agent's own tools. Alerts appear in-app, not email. Human recipients must accept invitations, and agents need separate shared-list consent.
+The skill's central rules are simple: read only permitted lists, preserve saved URLs and attribution, ask before reserving, and leave checkout to separate authorized tools. For monitoring requests, the agent must check the exact variant in the person's local market, schedule its own recurring task, and send its own alerts. It should say when scheduling is unavailable. Human recipients must accept invitations, and agents need separate shared-list consent.
 
 ## MCP registry metadata
 

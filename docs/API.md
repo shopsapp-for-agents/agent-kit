@@ -36,15 +36,11 @@ Use [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.jso
 | Set item priority (0–5) | `PATCH /v1/items/{item_id}/priority` | Owner or scoped write agent |
 | Store verified structured ingredients | `PUT /v1/recipes/{item_id}/ingredients` | Owner or scoped write agent |
 | Scale and prepare grocery ingredients | `POST /v1/recipes/{item_id}/grocery-handoff` | Permitted viewer; no cart mutation |
-| Create/update non-grocery watch | `POST /v1/watches` | Owner or scoped write agent |
-| List/stop watches | `GET /v1/watches`, `DELETE /v1/watches/{id}` | Scoped read/write |
-| Submit a price observation | `POST /v1/watches/{id}/observations` | Owner or scoped write agent |
-| Read/acknowledge alerts | `GET /v1/alerts`, `POST /v1/alerts/{id}/read` | Scoped read/write |
 | Affiliate product discovery | `GET /v1/discovery/products` | Coming soon; no offers returned |
 
 OAuth metadata is at `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server`. Public clients use S256 PKCE and exact registered callback URLs. Legacy `ak_` pairing remains available. OAuth access tokens are short-lived and refresh tokens rotate. The owner can decline consent or revoke the underlying agent grant. Shared lists require separate consent plus a human-accepted invitation. No agent receives the owner's credential.
 
-Watch observations include provenance, timestamp, currency, and freshness. Automatic checks currently support exact Shopify variants in the merchant's default market; manual/agent observations are explicitly unverified by ShopsApp. Alerts are persisted in-app. Groceries are excluded from watches. Structured grocery handoffs contain source text, quantities, pantry and substitution preferences, but delegate product images, local prices and cart creation to the user's grocery provider. An Instacart shopping-page mapping is not an existing cart. No Instacart credential is configured in ShopsApp.
+Price and stock monitoring, scheduling, and notifications use the person's own agent. ShopsApp has no watch or alert API. Structured grocery handoffs contain source text, quantities, pantry and substitution preferences, but delegate product images, local prices and cart creation to the user's grocery provider. An Instacart shopping-page mapping is not an existing cart. No Instacart credential is configured in ShopsApp.
 
 Private requests use `Authorization: Bearer <credential>` in the HTTP header. Agents should use owner-approved `ak_` credentials. Never request the owner’s `sa_` credential. A list grant is scoped to one list. The service intentionally returns 404 for a private list the caller cannot read, so do not infer that it exists. A gift reservation reduces `available_quantity` for other buyers but does not purchase anything. The original saved URL is returned unchanged by the handoff route.
 
