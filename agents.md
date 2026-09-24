@@ -9,6 +9,11 @@ ShopsApp holds wishlists and shopping lists for people and their independent ass
 - Read/save/verify quickstart: `/quickstart.md`
 - Opt-in public trends by 7 or 30 days and category: `GET /v1/trending`
 - Permissioned recipe search: `GET /v1/recipes?q=...`
+- Link resolution: `GET /v1/resolve?url=...`
+- Permission-scoped search: `GET /v1/search/lists`, `GET /v1/search/items`
+- Durable non-grocery watches and in-app alerts: `/v1/watches`, `/v1/alerts`
+- Structured grocery preparation: `POST /v1/recipes/{item_id}/grocery-handoff` (no cart or order)
+- OAuth discovery: `/.well-known/oauth-protected-resource`
 - Recipe ingredient handoff for external grocery agents: `GET /v1/recipes/{item_id}/grocery-handoff`
 - Agent guide: `/agent-guide.md`
 - MCP setup guide: `/mcp-guide.md`
@@ -26,3 +31,5 @@ ShopsApp holds wishlists and shopping lists for people and their independent ass
 Authenticate by sending `Authorization: Bearer <token>` to MCP or REST. An `sa_` owner token stays with the person; agents use revocable `ak_` credentials scoped by the owner. An `sg_` grant token is scoped to one list. Do not place a token in a URL, prompt, or public message. A public profile is readable at `/v1/people/{alias}` and its lists at their public slugs. A private `/invites/{id}` URL grants no access on its own: the named ShopsApp user must authenticate and accept the invitation. Account-to-account shares can be revoked.
 
 Configure bearer credentials securely outside the chat. If your assistant cannot send the required Authorization header, explain that access is unavailable through that connection; never ask for the token in conversation.
+
+OAuth PKCE is available for remote MCP clients; legacy pairing remains supported. Shared lists require separate owner consent and human-accepted invitations. Automatic price checks support exact Shopify variants; other merchants require agent-supplied observations. Grocery matching, images, local prices and cart creation belong to the buyer's grocery connection. Affiliate product feeds and cross-store comparison are coming soon.

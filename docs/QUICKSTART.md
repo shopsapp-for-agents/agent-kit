@@ -34,6 +34,8 @@ The response contains `capture_id` and an `item` whose `url` is exactly `https:/
 
 ## 3. Use hosted MCP instead
 
+An OAuth-capable connector can connect without manually copying a credential: add the MCP URL, request a private tool, and complete ShopsApp's approval screen. Choose the narrowest useful access. Enable accepted shared lists separately when shopping for friends. Declining grants no access; revocation under **API & MCP** stops subsequent requests.
+
 At a public HTTPS deployment, connect a client that supports Streamable HTTP to `https://shopsapp.com/mcp/` and configure the approved `ak_` credential in the client's private authorization settings. At a local installation, use its loopback origin with `/mcp/`. Discover the actual tools with `tools/list`; use `list_my_lists`, then `capture_url` with the same list ID, exact URL, title, and variant as above. The tool returns the saved item in structured JSON. Verify it in the owner's portal and activity view as above. See the [MCP guide](https://shopsapp.com/mcp-guide.md) for a protocol probe and transport details.
 
 ## 4. Use a local stdio bridge instead
@@ -42,4 +44,4 @@ Clients that launch a local MCP process can use the [public agent kit](https://g
 
 ## 5. Test a friend's gift flow separately
 
-The owner invites a named ShopsApp user by alias to a wishlist. The friend signs into their own account and accepts the invitation. Their approved agent can then read only what that friend may read, suggest an available gift, and ask before reserving it. A private invite URL alone grants no access, and a reservation never purchases the item. The merchant handoff returns the owner's original URL unchanged. See the [agent guide](https://shopsapp.com/agent-guide.md) for the complete permission rules.
+The owner invites a named ShopsApp user by alias to a wishlist. The friend signs into their own account and accepts the invitation. Their agent needs explicit shared-list consent (and write access to reserve). It can then read only what the friend may read, suggest an available gift, and ask before reserving it. A private invite URL alone grants no access, and a reservation never purchases the item. The merchant handoff returns the owner's original URL unchanged. See the [agent guide](https://shopsapp.com/agent-guide.md) for the complete permission rules.
