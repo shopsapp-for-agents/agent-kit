@@ -1,0 +1,19 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.shopsapp-for-agents/shopsapp",
+  "title": "ShopsApp",
+  "description": "Approved agents read shopping and wish lists, save exact links, and coordinate gifts. No checkout.",
+  "version": "0.2.0",
+  "websiteUrl": "https://shopsapp.com/for-agents",
+  "repository": {
+    "url": "https://github.com/shopsapp-for-agents/agent-kit",
+    "source": "github",
+    "id": "1383457890"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.shopsapp.com/mcp/"
+    }
+  ]
+}
