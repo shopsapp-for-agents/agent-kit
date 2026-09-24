@@ -209,6 +209,7 @@ def capture_url(
     idempotency_key: str | None = None,
     recipe_ingredients: list[str] | None = None,
     recipe_servings: str | None = None,
+    page_type: Literal["product", "inspiration"] | None = None,
 ) -> dict[str, Any]:
     return _request(
         "POST",
@@ -222,6 +223,7 @@ def capture_url(
             "category": category,
             "gtin": gtin,
             "quantity": quantity,
+            "page_type": page_type,
             "recipe": (
                 {"ingredients": recipe_ingredients, "servings": recipe_servings}
                 if recipe_ingredients is not None

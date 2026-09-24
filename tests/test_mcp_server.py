@@ -94,15 +94,16 @@ def test_trending_is_public_and_capture_passes_product_identity(monkeypatch):
         assert request.headers["Authorization"] == "Bearer ak_agent"
         assert json.loads(request.content)["category"] == "home"
         assert json.loads(request.content)["gtin"] == "036000291452"
+        assert json.loads(request.content)["page_type"] == "product"
         return httpx.Response(201, json={"item": {"product": {"gtin14": "00036000291452"}}})
 
     mock_client(monkeypatch, handler)
     assert mcp_server.get_trending(30, "home")["total_saves"] == 1
     assert mcp_server.get_public_product("036000291452")["public_save_count"] == 2
     assert (
-        mcp_server.capture_url("list-id", "https://shop.example/item", "A lamp", category="home", gtin="036000291452")[
-            "item"
-        ]["product"]["gtin14"]
+        mcp_server.capture_url(
+            "list-id", "https://shop.example/item", "A lamp", category="home", gtin="036000291452", page_type="product"
+        )["item"]["product"]["gtin14"]
         == "00036000291452"
     )
 
