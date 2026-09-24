@@ -137,6 +137,9 @@ def test_mcp_exposes_core_tools():
         "get_public_profile",
         "list_my_lists",
         "capture_url",
+        "search_my_recipes",
+        "update_recipe",
+        "get_recipe_grocery_handoff",
         "reserve_item",
         "get_handoff",
     } <= names

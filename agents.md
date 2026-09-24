@@ -6,8 +6,10 @@ ShopsApp holds wishlists and shopping lists for people and their independent ass
 - Agent web view: `/for-agents`
 - Direct Markdown instructions: `/for-agents.md`
 - Machine-readable service catalog: `/for-agents.json`
-- Read/save/verify quickstart: [docs/QUICKSTART.md](docs/QUICKSTART.md) (served at `/quickstart.md`)
+- Read/save/verify quickstart: `/quickstart.md`
 - Opt-in public trends by 7 or 30 days and category: `GET /v1/trending`
+- Permissioned recipe search: `GET /v1/recipes?q=...`
+- Recipe ingredient handoff for external grocery agents: `GET /v1/recipes/{item_id}/grocery-handoff`
 - Agent guide: `/agent-guide.md`
 - MCP setup guide: `/mcp-guide.md`
 - JSON API guide: `/agent-api.md`

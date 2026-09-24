@@ -1,6 +1,6 @@
 ---
 name: shopsapp
-description: Use when saving product URLs to ShopsApp lists, reading permitted wishlists, coordinating gifts, or handing original merchant links to separate shopping tools.
+description: Use when saving product or recipe URLs to ShopsApp lists, reading permitted lists, coordinating gifts, or handing original links and ingredients to separate shopping tools.
 ---
 
 # ShopsApp agent skill
@@ -32,6 +32,12 @@ After approval, call `exchange_agent_pairing` or `POST /v1/agent-pairings/exchan
 4. For a guest without an account, create a one-list grant with the narrowest useful capability and deliver its one-time secret through a secure channel. The owner can revoke a grant.
 5. To explore public saves, call `get_trending` for 7 or 30 days and optionally a category. Only separately opted-in public lists appear. Never infer private-list activity from those counts.
 6. If an item has a GTIN, `get_public_product` can find other opted-in public saves with that identifier. Treat them as leads for research, not verified offers or proof that the merchant labeled the item correctly.
+
+## Recipe and grocery workflow
+
+When the user shares a recipe URL, inspect the page for Schema.org `Recipe` data with your own browsing tools. If it has `recipeIngredient` strings, create or choose a `recipe` list and call `capture_url` with the exact source URL, recipe title, `recipe_ingredients`, and `recipe_servings` if present. Do not invent ingredients or quantities. ShopsApp may recognize a recipe-shaped URL without fetching it; such an item has `status: needs_ingredients`. A write-approved agent can call `update_recipe` after reading the source or receiving the user's ingredient list. Do not treat an empty ingredient list as ready to shop.
+
+Use `search_my_recipes` to find a saved recipe by title or ingredient. A friend with access to a shared recipe list can read its ingredient JSON through `get_list`. Call `get_recipe_grocery_handoff` for a provider-neutral ingredient list and the unchanged source URL. Review ingredient names, quantities, pantry items, substitutions, and serving size with the shopper before passing them to Instacart or another grocery service. The Instacart Developer Platform can create a hosted recipe page with a developer key; the shopper selects a store and completes checkout there. ShopsApp does not create an order or charge the shopper. Use only your own authorized grocery integration and obtain the shopper's approval before spending.
 
 ## Gift buyer workflow
 

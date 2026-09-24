@@ -163,7 +163,7 @@ def get_public_product(gtin: str) -> dict[str, Any]:
     return _request("GET", f"/v1/products/{_segment(gtin)}")
 
 
-@mcp.tool(structured_output=True, description="List the authenticated owner's shopping and wish lists.")
+@mcp.tool(structured_output=True, description="List the authenticated owner's shopping, wish, and recipe lists.")
 def list_my_lists() -> dict[str, Any]:
     return _request("GET", "/v1/lists", private=True)
 
@@ -178,10 +178,10 @@ def get_my_profile() -> dict[str, Any]:
     return _request("GET", "/v1/me", private=True)
 
 
-@mcp.tool(structured_output=True, description="Create a private or public shopping/wish list for the owner.")
+@mcp.tool(structured_output=True, description="Create a shopping, wish, or recipe list for the owner.")
 def create_list(
     title: str,
-    mode: Literal["wishlist", "shopping"] = "wishlist",
+    mode: Literal["wishlist", "shopping", "recipe"] = "wishlist",
     visibility: Literal["private", "public"] = "private",
 ) -> dict[str, Any]:
     return _request(
@@ -207,6 +207,8 @@ def capture_url(
     gtin: str | None = None,
     quantity: int = 1,
     idempotency_key: str | None = None,
+    recipe_ingredients: list[str] | None = None,
+    recipe_servings: str | None = None,
 ) -> dict[str, Any]:
     return _request(
         "POST",
@@ -220,9 +222,37 @@ def capture_url(
             "category": category,
             "gtin": gtin,
             "quantity": quantity,
+            "recipe": (
+                {"ingredients": recipe_ingredients, "servings": recipe_servings}
+                if recipe_ingredients is not None
+                else None
+            ),
         },
         idempotency_key=idempotency_key,
     )
+
+
+@mcp.tool(structured_output=True, description="Search accessible saved recipes by title or ingredient.")
+def search_my_recipes(query: str = "") -> dict[str, Any]:
+    return _request("GET", f"/v1/recipes?q={_segment(query)}", private=True)
+
+
+@mcp.tool(structured_output=True, description="Add or correct ingredients for a saved recipe.")
+def update_recipe(item_id: str, ingredients: list[str], servings: str | None = None) -> dict[str, Any]:
+    return _request(
+        "PUT",
+        f"/v1/recipes/{_segment(item_id)}",
+        private=True,
+        body={"ingredients": ingredients, "servings": servings},
+    )
+
+
+@mcp.tool(
+    structured_output=True,
+    description="Get ingredient JSON for an external grocery agent. Does not place an order.",
+)
+def get_recipe_grocery_handoff(item_id: str) -> dict[str, Any]:
+    return _request("GET", f"/v1/recipes/{_segment(item_id)}/grocery-handoff", private=True)
 
 
 @mcp.tool(structured_output=True, description="Invite a named ShopsApp user to one list.")

@@ -21,6 +21,9 @@ Use [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.jso
 | Change public list discovery | `PATCH /v1/lists/{list_id}/discovery` | Owner only; body `{"discoverable":true}`; public list only |
 | Read one list | `GET /v1/lists/{list_id}` | Owner or permitted grant |
 | Save an exact URL | `POST /v1/captures` | Owner or approved write agent |
+| Search saved recipes | `GET /v1/recipes?q=lemon` | Owner or approved read agent; only accessible owned lists |
+| Correct recipe ingredients | `PUT /v1/recipes/{item_id}` | Owner or approved write agent |
+| Get grocery handoff JSON | `GET /v1/recipes/{item_id}/grocery-handoff` | Permitted list viewer |
 | Create a named invitation | `POST /v1/lists/{list_id}/shares` | Owner |
 | See incoming invitations | `GET /v1/me/invites` | Recipient account |
 | Accept an invitation | `POST /v1/invites/{share_id}/accept` | Named recipient |
@@ -30,6 +33,8 @@ Use [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.jso
 Private requests use `Authorization: Bearer <credential>` in the HTTP header. Agents should use owner-approved `ak_` credentials. Never request the owner’s `sa_` credential. A list grant is scoped to one list. The service intentionally returns 404 for a private list the caller cannot read, so do not infer that it exists. A gift reservation reduces `available_quantity` for other buyers but does not purchase anything. The original saved URL is returned unchanged by the handoff route.
 
 `POST /v1/captures` accepts optional `category` (`fashion`, `home`, `tech`, `beauty`, `books`, `hobbies`, `food`, `other`) and `gtin` (8, 12, 13, or 14 digits with a valid check digit). A supplied GTIN is zero-padded to GTIN-14 and links saves to one product identity across merchants. The item JSON includes a product reference with a `/v1/products/{gtin}` URL for opted-in public matches. ShopsApp checks the number's format, not whether the merchant's claim is genuine. Do not guess a GTIN from a URL or title. Items without one remain separate, and the exact saved merchant URLs are never replaced. Older items default to `other`.
+
+Lists may use `mode: "recipe"`. A capture in a recipe list, a recipe-shaped URL, or a capture with `recipe` data becomes a recipe item. Send `"recipe":{"ingredients":["200 g pasta","1 lemon"],"servings":"2 servings"}` when ingredients are available. The extension reads Schema.org Recipe JSON-LD on the current page and sends its ingredient strings; the API does not fetch submitted URLs. A URL alone is saved with `status: "needs_ingredients"`. The user or a write-approved agent can add or correct ingredients later. Recipe title and ingredient words are indexed for permission-scoped search. The grocery handoff returns those strings, the unchanged source URL, and an Instacart developer recipe-page pointer. It never places an order; an external agent must review ingredients and obtain shopping approval.
 
 Trending includes only saves on public lists whose owners separately enabled discovery. New lists are not discoverable by default. Its JSON gives total saves, category counts, and the latest 24 opted-in items for the requested window and category. It is a view of saves, not orders or verified demand.
 

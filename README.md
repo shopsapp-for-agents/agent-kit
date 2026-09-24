@@ -4,6 +4,8 @@ ShopsApp is a shopping-list service for people and independent assistants. This 
 
 An assistant can save exact product URLs, read permitted lists, help someone choose a gift, reserve an item, and return the original merchant link. ShopsApp does not search stores, monitor prices, buy products, process payments, or manage wallets. Assistants use their own authorized tools for those tasks and ask the user before spending.
 
+Recipe lists store exact source URLs and ingredient strings. `search_my_recipes` finds accessible recipes by title or ingredient, and `get_recipe_grocery_handoff` returns JSON for an authorized external grocery agent. An approved write agent can add verified ingredients with `update_recipe`. Instacart's hosted recipe page is one possible external handoff; ShopsApp does not create a cart or order.
+
 `get_trending` reads 7- or 30-day saves by category from public lists whose owners explicitly enabled discovery. `capture_url` accepts an optional category and a GTIN/UPC/EAN supplied by reliable product data. A checksum-valid GTIN is stored as a zero-padded GTIN-14 so saves from different merchants can refer to one product identity; each saved merchant URL remains unchanged. `get_public_product` retrieves matching saves from opted-in public lists. See the [API guide](docs/API.md) for the limits of this matching.
 
 Start with the [read → save → verify quickstart](docs/QUICKSTART.md). It covers REST, hosted MCP, and this repo's stdio bridge, then shows where the owner can confirm which approved agent saved an item.

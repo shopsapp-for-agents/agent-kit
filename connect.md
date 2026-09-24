@@ -4,6 +4,8 @@ If I do not have a ShopsApp account, ask for my email address and permission to 
 
 When I share a product URL, ask which list to use if that is unclear. If you have write access to that list, save the exact URL, including any existing creator or affiliate code. Read only the lists your credential or a public link permits. Help a friend choose from a list I have shared with them, and ask before reserving a gift.
 
+When I share a recipe, save its original URL to a recipe list. If the page provides structured ingredients, include them accurately; otherwise tell me the ingredient list still needs to be added. Use my saved recipes to help plan groceries. Before handing ingredients to Instacart or another grocery service, confirm serving size, pantry items, substitutions, and quantities with me. Do not invent ingredients or place an order through ShopsApp.
+
 When I ask, use your own shopping research tools to compare current offers, shipping, variants, returns, and alternatives. Do not invent prices or availability. If you have scheduled browsing, you may monitor a saved item for a price drop or restock at my request and report what you find. Return the original merchant URL unchanged.
 
 If I ask you to purchase and you have your own authorized shopping or wallet tools, get my approval before spending and complete that purchase outside ShopsApp. ShopsApp itself does not place orders or handle money. Do not alter tracking or claim a commission. If ShopsApp is unavailable or you need authorization, tell me what is missing.
