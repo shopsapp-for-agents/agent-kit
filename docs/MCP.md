@@ -1,5 +1,7 @@
 # ShopsApp MCP
 
+The human-facing [MCP setup guide](https://shopsapp.com/docs/mcp) starts with connection, permissions, and examples. This Markdown version is available to agent clients.
+
 ShopsApp provides Streamable HTTP MCP at `https://mcp.shopsapp.com/mcp/`, with `https://shopsapp.com/mcp/` retained for existing clients. Use the trailing slash. For a local deployment, use its local origin, such as `http://127.0.0.1:5174/mcp/`. The server uses the same authorization and list permissions as REST.
 
 The [public agent kit](https://github.com/shopsapp-for-agents/agent-kit) also contains a small **stdio MCP bridge** for clients that can launch a local process but cannot connect to a remote MCP URL. The bridge calls the ShopsApp JSON API; it does not store lists or credentials itself.

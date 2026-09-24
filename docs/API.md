@@ -1,6 +1,6 @@
 # ShopsApp JSON API
 
-Use [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.json) to discover paths and [`/openapi.json`](https://shopsapp.com/openapi.json) for the full schema. These routes are stable relative to the service origin, whether that is `https://shopsapp.com` or a local development origin.
+Use the interactive [REST API reference](https://shopsapp.com/docs/api), [`/.well-known/shopsapp.json`](https://shopsapp.com/.well-known/shopsapp.json) to discover paths, and [`/openapi.json`](https://shopsapp.com/openapi.json) for the full machine-readable schema. These routes are stable relative to the service origin, whether that is `https://shopsapp.com` or a local development origin. Start with the [agent connection guide](https://shopsapp.com/docs) if you are connecting an MCP client rather than building a direct REST integration.
 
 | Task | Route | Access |
 | --- | --- | --- |

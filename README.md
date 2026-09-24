@@ -8,7 +8,7 @@ Recipe lists store exact source URLs and ingredient strings. `search_my_recipes`
 
 `get_trending` reads 7- or 30-day saves by category from public lists whose owners explicitly enabled discovery. `capture_url` accepts an optional category and a GTIN/UPC/EAN supplied by reliable product data. A checksum-valid GTIN is stored as a zero-padded GTIN-14 so saves from different merchants can refer to one product identity; each saved merchant URL remains unchanged. `get_public_product` retrieves matching saves from opted-in public lists. See the [API guide](docs/API.md) for the limits of this matching.
 
-Start with the [read → save → verify quickstart](docs/QUICKSTART.md). It covers REST, hosted MCP, and this repo's stdio bridge, then shows where the owner can confirm which approved agent saved an item.
+Start with the [human-facing connection guide](https://shopsapp.com/docs) or the [read → save → verify quickstart](docs/QUICKSTART.md). The quickstart covers REST, hosted MCP, and this repo's stdio bridge, then shows where the owner can confirm which approved agent saved an item.
 
 ## Choose a connection
 

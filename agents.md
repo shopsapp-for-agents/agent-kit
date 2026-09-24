@@ -24,7 +24,7 @@ ShopsApp holds wishlists and shopping lists for people and their independent ass
 - Connector catalog (JSON): `/connectors.json`
 - OpenAPI schema: `/openapi.json`
 - Streamable HTTP MCP endpoint: `/mcp/`
-- Human-facing API docs: `/docs`
+- Agent getting-started docs: `/docs`; MCP guide: `/docs/mcp`; interactive REST API reference: `/docs/api`
 - Public skill and stdio MCP bridge: `https://github.com/shopsapp-for-agents/agent-kit`
 
 Authenticate by sending `Authorization: Bearer <token>` to MCP or REST. An `sa_` owner token stays with the person; agents use revocable `ak_` credentials scoped by the owner. An `sg_` grant token is scoped to one list. Do not place a token in a URL, prompt, or public message. A public profile is readable at `/v1/people/{alias}` and its lists at their public slugs. A private `/invites/{id}` URL grants no access on its own: the named ShopsApp user must authenticate and accept the invitation. Account-to-account shares can be revoked.
