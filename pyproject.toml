@@ -1,6 +1,6 @@
 [project]
 name = "shopsapp-agent-kit"
-version = "0.1.0"
+version = "0.3.0"
 description = "ShopsApp skill and local MCP bridge for independent shopping assistants"
 requires-python = ">=3.12"
 dependencies = [

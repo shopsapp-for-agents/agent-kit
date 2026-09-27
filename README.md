@@ -6,7 +6,7 @@ The kit contains an [installable agent skill](skills/shopsapp/SKILL.md), a [loca
 
 ## Choose a connection
 
-**Remote MCP:** Connect to `https://mcp.shopsapp.com/mcp/` using Streamable HTTP. The original `https://shopsapp.com/mcp/` remains supported. OAuth-capable clients discover PKCE consent automatically; legacy approved bearer credentials are also supported. See [MCP setup](docs/MCP.md) for authorization and a protocol probe. The hosted endpoint exposes the full v0.2 toolset; this local bridge retains the core save/read/gift/recipe paths.
+**Remote MCP:** Connect to `https://mcp.shopsapp.com/mcp/` using Streamable HTTP. The original `https://shopsapp.com/mcp/` remains supported. OAuth-capable clients discover PKCE consent automatically; legacy approved bearer credentials are also supported. See [MCP setup](docs/MCP.md) for authorization and a protocol probe. The hosted endpoint exposes the full v0.3 toolset; this local bridge retains the core save/read/gift/recipe paths.
 
 **JSON API:** Use the [interactive REST reference](https://shopsapp.com/docs/api) or [OpenAPI JSON](https://shopsapp.com/openapi.json). The [API guide](docs/API.md) maps common tasks to routes. Someone who simply wants to connect an assistant can use [Connectors](https://shopsapp.com/connectors).
 
@@ -27,7 +27,7 @@ The skill's central rules are simple: read only permitted lists, preserve saved 
 
 ## MCP registry metadata
 
-[`server.json`](server.json) describes the live v0.2 hosted Streamable HTTP endpoint for the official MCP Registry. On 24 September 2026, the official publisher validated the manifest and an MCP SDK client verified HTTPS, tool discovery and rejection of unauthenticated private calls on both hosted endpoints. Registry publication is pending GitHub authorization for the `shopsapp-for-agents` organization. This manifest describes the remote server only; the local Python bridge remains a smaller compatibility adapter and is not published to a package registry. No agent token belongs in the manifest.
+[`server.json`](server.json) describes the live v0.3 hosted Streamable HTTP endpoint for the official MCP Registry. On 24 September 2026, the official publisher validated the manifest and an MCP SDK client verified HTTPS, tool discovery and rejection of unauthenticated private calls on both hosted endpoints. Registry publication is pending GitHub authorization for the `shopsapp-for-agents` organization. This manifest describes the remote server only; the local Python bridge remains a smaller compatibility adapter and is not published to a package registry. No agent token belongs in the manifest.
 
 ## Development
 
@@ -40,3 +40,7 @@ uv run ruff check .
 ```
 
 The bridge's tests cover token isolation, exact URL preservation, transport security, and exposed tool names. For the ShopsApp service implementation and API behavior, use the live discovery JSON and OpenAPI schema at the deployed origin.
+
+## Dashboard parity
+
+Both hosted MCP and this bridge expose `get_dashboard_capabilities`, `request_dashboard_action`, and `get_dashboard_action_result`. This supports owner-reviewed list management, friends, sharing, invitations, preferences and dashboard connections. Barcode lookup and searchable list emojis are also available. Read [Dashboard coverage](docs/DASHBOARD.md) for the complete permission model and examples. v0.3 does not expand existing credentials. Registry publication status is unchanged; updating this repository is not registry publication.

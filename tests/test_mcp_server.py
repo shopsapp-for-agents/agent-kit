@@ -144,3 +144,46 @@ def test_mcp_exposes_core_tools():
         "reserve_item",
         "get_handoff",
     } <= names
+
+
+def test_dashboard_workflow_keeps_private_token_off_public_catalog(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_agent")
+
+    def handler(request):
+        if request.url.path == "/v1/agent-dashboard/capabilities":
+            assert "Authorization" not in request.headers
+            assert request.url.params["category"] == "sharing"
+            return httpx.Response(200, json={"operations": []})
+        assert request.headers["Authorization"] == "Bearer ak_agent"
+        if request.method == "POST":
+            assert json.loads(request.content) == {
+                "operation": "edit_list",
+                "arguments": {"list_id": "list", "body": {"title": "Holiday"}},
+            }
+            return httpx.Response(
+                201,
+                json={
+                    "id": "action",
+                    "status": "pending",
+                    "approval_url": "https://shopsapp.com/app?agent_action=action",
+                },
+            )
+        assert request.url.path == "/v1/agent-dashboard/actions/action"
+        return httpx.Response(200, json={"status": "completed", "result": {"data": {"title": "Holiday"}}})
+
+    mock_client(monkeypatch, handler)
+    mcp_server.get_dashboard_capabilities("sharing")
+    assert (
+        mcp_server.request_dashboard_action("edit_list", {"list_id": "list", "body": {"title": "Holiday"}})["status"]
+        == "pending"
+    )
+    assert mcp_server.get_dashboard_action_result("action")["status"] == "completed"
+    names = {tool.name for tool in asyncio.run(mcp_server.mcp.list_tools())}
+    assert {
+        "get_dashboard_capabilities",
+        "request_dashboard_action",
+        "get_dashboard_action_result",
+        "search_list_emojis",
+        "lookup_barcode",
+        "get_public_list_leaderboard",
+    } <= names
