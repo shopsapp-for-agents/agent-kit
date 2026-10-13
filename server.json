@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.shopsapp-for-agents/shopsapp",
   "title": "ShopsApp",
-  "description": "Approved list access and owner-reviewed dashboard actions: sharing, friends, lists and preferences.",
-  "version": "0.3.0",
+  "description": "Owner-approved list and account workflows through REST and MCP, with revocable permissions.",
+  "version": "0.4.0",
   "websiteUrl": "https://shopsapp.com/for-agents",
   "repository": {
     "url": "https://github.com/shopsapp-for-agents/agent-kit",

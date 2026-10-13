@@ -58,7 +58,7 @@ def _request(
     idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     base_url = _base_url()
-    headers = {"Accept": "application/json", "User-Agent": "shopsapp-agent-kit/0.1"}
+    headers = {"Accept": "application/json", "User-Agent": "shopsapp-agent-kit/0.4"}
     if private:
         token = os.getenv("SHOPSAPP_TOKEN", "").strip()
         if not token:
@@ -104,27 +104,23 @@ def start_account_signup(email: str) -> dict[str, Any]:
     return _request("POST", "/v1/agent-signups", body={"email": email})
 
 
-@mcp.tool(
-    structured_output=True,
-    description=(
-        "Request owner approval for this agent. Show only approval_url to the person; keep request_secret private."
-    ),
-)
-def start_agent_pairing(agent_name: str, requested_access: Literal["read", "add", "write"] = "read") -> dict[str, Any]:
+def start_agent_pairing(
+    agent_name: str,
+    requested_access: Literal["read", "add", "write"] = "read",
+    requested_dashboard_access: Literal["none", "read", "write"] = "none",
+) -> dict[str, Any]:
+    """Secure host helper; the request secret must never enter a model tool result."""
     return _request(
         "POST",
         "/v1/agent-pairings",
-        body={"agent_name": agent_name, "requested_access": requested_access},
+        body={
+            "agent_name": agent_name,
+            "requested_access": requested_access,
+            "requested_dashboard_access": requested_dashboard_access,
+        },
     )
 
 
-@mcp.tool(
-    structured_output=True,
-    description=(
-        "Exchange a private pairing request secret after the person approves. "
-        "Store the returned agent credential securely."
-    ),
-)
 def exchange_agent_pairing(request_secret: str) -> dict[str, Any]:
     return _request("POST", "/v1/agent-pairings/exchange", body={"request_secret": request_secret})
 
@@ -307,13 +303,33 @@ def get_handoff(item_id: str) -> dict[str, Any]:
     structured_output=True,
     annotations={"readOnlyHint": True},
     description=(
-        "Discover dashboard operations and their argument schemas. Each operation "
-        "needs one-time signed-in owner approval."
+        "Discover workflow schemas, REST routes and this connection’s permissions. "
+        "Approved account workflows execute without another UI approval."
     ),
 )
 def get_dashboard_capabilities(category: str | None = None) -> dict[str, Any]:
     suffix = "?category=" + quote(category, safe="") if category else ""
-    return _request("GET", "/v1/agent-dashboard/capabilities" + suffix)
+    return _request(
+        "GET", "/v1/agent-dashboard/capabilities" + suffix, private=bool(os.getenv("SHOPSAPP_TOKEN", "").strip())
+    )
+
+
+@mcp.tool(
+    structured_output=True,
+    annotations={"readOnlyHint": False, "destructiveHint": True, "openWorldHint": True},
+    description=(
+        "Execute a user-requested operation from get_dashboard_capabilities within the "
+        "existing grant. May edit/delete data or send invitations. No extra UI is needed "
+        "for approved workflows. Inspect current state before retrying uncertain writes."
+    ),
+)
+def execute_dashboard_action(operation: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    return _request(
+        "POST",
+        "/v1/agent-dashboard/execute",
+        private=True,
+        body={"operation": operation, "arguments": arguments},
+    )
 
 
 @mcp.tool(
