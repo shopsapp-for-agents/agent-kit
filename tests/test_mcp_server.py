@@ -140,6 +140,7 @@ def test_mcp_exposes_core_tools():
         "execute_dashboard_action",
         "get_public_profile",
         "list_my_lists",
+        "export_my_lists_csv",
         "capture_url",
         "search_my_recipes",
         "update_recipe",
@@ -228,3 +229,39 @@ def test_catalog_without_a_configured_credential_remains_public(monkeypatch):
 
     mock_client(monkeypatch, handler)
     assert mcp_server.get_dashboard_capabilities() == {"operations": []}
+
+
+def test_csv_export_preserves_bom_unicode_and_checks_with_private_header(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_agent")
+    csv_text = "\ufeffList name,Item name,Ingredient checked\r\nCafé,2 eggs,True\r\n"
+
+    def handler(request):
+        assert request.url.path == "/v1/me/lists/export"
+        assert request.headers["Authorization"] == "Bearer ak_agent"
+        assert request.headers["Accept"] == "text/csv"
+        assert "ak_agent" not in str(request.url)
+        return httpx.Response(
+            200,
+            text=csv_text,
+            headers={
+                "Content-Type": "text/csv; charset=utf-8",
+                "Content-Disposition": 'attachment; filename="shopsapp-lists-2026-10-14.csv"',
+            },
+        )
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.export_my_lists_csv() == {
+        "mime_type": "text/csv",
+        "filename": "shopsapp-lists-2026-10-14.csv",
+        "csv": csv_text,
+    }
+
+
+def test_csv_export_rejects_redirect_and_unexpected_html(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_agent")
+    mock_client(monkeypatch, lambda request: httpx.Response(302, headers={"Location": "https://other.example"}))
+    with pytest.raises(ToolError, match="redirected"):
+        mcp_server.export_my_lists_csv()
+    mock_client(monkeypatch, lambda request: httpx.Response(200, text="Login", headers={"Content-Type": "text/html"}))
+    with pytest.raises(ToolError, match="unexpected CSV response"):
+        mcp_server.export_my_lists_csv()

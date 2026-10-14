@@ -49,3 +49,7 @@ Instagram, Messenger, WhatsApp, and email imports are add-only. Never try to ret
 ## Shared features and dashboard actions
 
 After connecting, call `get_dashboard_capabilities` with the configured credential. It returns exact schemas, REST routes and this connection's permissions. An optional account-workflow grant, explicitly approved during connection, enables `execute_dashboard_action` and the listed REST routes without repeated UI approval. Request OAuth `dashboard:read` or `dashboard:write` alongside matching list scopes; a legacy connector requests `requested_dashboard_access`. The person chooses `dashboard_access` at approval. Existing credentials gain nothing automatically. For operations outside the approved grant, use `request_dashboard_action` and `get_dashboard_action_result`. Read the [workflow contract](https://shopsapp.com/dashboard-guide.md).
+
+## Dedicated Groceries
+
+Users have a Groceries tab in the web and Flutter apps. Approved account workflows expose `get_my_groceries`, `add_my_groceries`, and `empty_groceries` through the JSON API and the general MCP executor. Copy all or selected ingredient lines with their source recipe URLs; check items using `check_grocery_ingredient`. Emptying keeps saved recipes and list access. See [the Groceries workflow](DASHBOARD.md#groceries). Device-only groceries remain on the device until explicitly synced.

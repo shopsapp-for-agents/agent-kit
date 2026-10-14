@@ -34,6 +34,7 @@ The hosted server exposes public, scoped-list, delegated account, sharing, reser
 | Find a friend's permitted list | `search_people_and_lists`, `list_shared_with_me` |
 | Find saved items or birthday preferences | `search_accessible_items`, `get_list` |
 | Save a find | `capture_url` |
+| Export approved owned lists as CSV | `export_my_lists_csv` |
 | Coordinate a gift | `reserve_item`, `release_reservation`, `get_commerce_handoff` |
 | Prepare groceries | `set_recipe_ingredients`, `create_grocery_handoff`, `get_list_grocery_handoff` |
 
@@ -42,6 +43,23 @@ The legacy read/save tools remain for compatibility. Price and stock checks, sch
 The hosted server exposes `get_trending` for opt-in public saves and `get_public_product` for public saves sharing a submitted GTIN. `capture_url` accepts optional `category` and `gtin` arguments. Use a GTIN only when it comes from product data, not a guess based on the URL. A matching number is a research lead, not a verified retailer offer.
 
 ## Permission and attribution rules
+
+`export_my_lists_csv` returns `filename`, `mime_type: "text/csv"` and `csv`.
+It includes only owned lists allowed by the configured credential. Empty lists,
+saved products/recipes and grouped grocery ingredients are included. An add-only
+or revoked connection cannot export. It does not upload anything to Google Sheets
+or share the export; sending it elsewhere needs the person's explicit request.
+The CSV is UTF-8 with a BOM, CRLF records and escaped fields. Formula-like text
+is prefixed with an apostrophe so a spreadsheet opens it as text.
+
+Buy for a Friend messages include ShopsApp's origin, skill and MCP URLs, a saved
+item's authenticated handoff URL when it has an account item ID, and the chosen
+recipient's profile and shipping-address reference URLs. These links identify
+the data; they do not broaden a connector's permission. Shipping-address endpoints
+require a human account session or the explicitly approved address workflow, and
+still enforce the recipient's address-sharing permissions. Ordinary list access
+does not include private addresses. Use an address explicitly included or
+requested by the buyer; otherwise ask the buyer for it.
 
 An `sa_` account token belongs to the person and stays in their browser. Agents request pairing and receive an `ak_` credential with owner-approved read, add-only, or read-and-write access to all owned lists or one owned list. The owner can revoke it. Legacy `sg_` guest grants are retired. Share or grant revocation stops later reads and actions. Never place either credential in a URL or prompt. `get_handoff` returns the original saved merchant URL, including existing affiliate attribution; do not replace it or simulate a referral click. ShopsApp has no payment or wallet tool.
 

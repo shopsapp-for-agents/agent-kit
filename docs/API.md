@@ -23,7 +23,11 @@ The access column describes ordinary list connections. A separately approved acc
 | Explore opt-in public saves | `GET /v1/trending?days=7&category=home` | Public; `days` is 7, 14 or 30, category optional |
 | Read a weekly public-list chart | `GET /v1/charts/lists?week=2026-10-02` | Public; optional Friday edition date, current access/discovery checks |
 | Find matching public saves by GTIN | `GET /v1/products/{gtin}` | Public; only separately opted-in lists, format-checked identifier |
+| Read your dedicated Groceries list | `GET /v1/me/groceries` | Owner or exact approved read account workflow; returns `{"list":null}` before first use |
+| Add recipe ingredients to Groceries | `POST /v1/me/groceries` | Owner or exact approved manage account workflow; reuses an owned Groceries list or creates a private one |
+| Empty recipe ingredients after shopping | `DELETE /v1/lists/{list_id}/groceries` | Owner or exact approved manage account workflow; retains list identity, saved finds, sharing and staple settings |
 | List your lists | `GET /v1/lists` | Account |
+| Export owned lists as CSV | `GET /v1/me/lists/export` | Account or approved read/write agent; one-list grants export that list only |
 | Choose list access level | `PATCH /v1/lists/{list_id}/access` | Owner only; `visibility` is `private` or `public`; `discoverable` requires public |
 | Change public list discovery | `PATCH /v1/lists/{list_id}/discovery` | Owner only; body `{"discoverable":true}`; public list only |
 | Set optional shopping region | `PUT /v1/me/shopping-region` | Owner only; private to the account |
@@ -81,3 +85,29 @@ After connecting, call `get_dashboard_capabilities` with the configured credenti
 People manage their private inventory at `/app/my-staples` or Settings → My Staples in the mobile app. Matching ingredients move to Already have in personal lists. Shared lists require the owner to enable Use my staples for this list. Bought checkmarks and Buy anyway overrides remain separate.
 
 Use `GET /v1/lists/{list_id}/grocery-handoff` (MCP `get_list_grocery_handoff`) for the current shopping requirements. This permission-scoped response excludes bought ingredients and covered staples. Recipe handoffs include `needed_ingredients` for shopping and keep `ingredients` as source data. Source links keep their complete query strings. Private staples and owner-only staple-matching controls are available with the corresponding approved account-workflow operations, or through one-time owner review.
+
+## CSV export
+
+`GET /v1/me/lists/export` returns a downloadable `text/csv; charset=utf-8` response
+with `Content-Disposition: attachment`, `Cache-Control: no-store`, a UTF-8 BOM and
+CRLF records. It exports the authenticated account's owned lists only. An agent
+with a one-list read/write grant receives that list only; add-only, revoked,
+unauthenticated and unrelated-account credentials cannot export other lists.
+Empty lists have a row with blank item fields. Saved finds retain their exact
+source URLs, variants, quantities, priorities, recipe ingredients and servings.
+Grocery rows retain their recipe group and checked state. Spreadsheet formula-like
+text is escaped with a leading apostrophe. The MCP equivalent is
+`export_my_lists_csv`; exporting does not upload or publish the data.
+
+Gift requests include `shopsapp.url`, `skill_url` and `mcp_url`; a valid saved
+account item includes `item_id` and its ShopsApp handoff URL. A selected recipient
+includes their username, public profile URL and shipping-address API reference.
+Links carry no account token or address. A link is an identifier, not permission.
+The shipping-address API requires a human session or the corresponding explicitly
+approved account-workflow operation, and still enforces the recipient's sharing
+choices. Ordinary list access does not include private addresses. Use an address
+the buyer explicitly attaches or requests through an approved address workflow;
+otherwise ask the buyer for it.
+
+Google Sheets sync is a proposed integration, not a current API. See the
+repository's `docs/GOOGLE-SHEETS-SYNC.md` for OAuth, one-way sync and ownership rules.
