@@ -40,6 +40,7 @@ The live catalog is authoritative; schemas are generated from the same functions
 | Feature | Operations / interface |
 | --- | --- |
 | Cloud lists and saved finds | Create/read/rename/icon/delete, access/discovery, `capture_url`, `edit_saved_finds`, `remove_saved_item`, explicit device-list migration |
+| CSV export | Named MCP `export_my_lists_csv` or `GET /v1/me/lists/export`; existing read access includes only the credential's permitted owned lists, including groceries and shopping checks |
 | Recipes and groceries | Recipe ingredients and servings, structured/scaled handoffs, `add_grocery_recipes`, `check_grocery_ingredient`, `set_staples_mode`, `get_staples`, `save_staple`, `delete_staple` |
 | Discovery and activity | `find_chart`, `list_chart`, `get_discover_feed`, `personal_activity`, feed/trending preferences, item feed visibility; public product/recipe search, barcode lookup, people/lists and link previews |
 | Friends and profiles | Public people search, friends, follows, profile connections, `update_profile`, avatar preference; binary profile upload through the approved REST route in `rest_only_operations` |
@@ -53,7 +54,15 @@ Use exact model fields from the catalog rather than guessing. The JSON executor 
 
 Public research is also available directly through its REST routes without a connection. The generic MCP/JSON executor requires an approved connection, even for public operations. Ingredient search, lookup and resolution appear when the ingredient catalog router is installed. The same rule applies to optional Telegram and Threads operations: an absent integration is never advertised as executable.
 
+CSV export is a named MCP/REST representation of permitted list reads, separate from the JSON workflow catalog. It creates a file response or returns CSV text; it does not upload data to a spreadsheet or grant access to another list.
+
 Catalog product search respects the source's separate permission to supply agents. Samples are labelled. Price/stock data from a feed is not a fresh checkout verification. Recipe-provider rights and configuration are independent of a person's account consent.
+
+## Groceries
+
+Use `get_my_groceries` to read the dedicated list, `add_my_groceries` to copy all or selected ingredient lines, and `empty_groceries` with its `list_id` after shopping. They use the same request schemas as the REST routes in [API.md](API.md). The first add reuses the person's existing Groceries list or creates a private one; later adds merge by recipe source URL and preserve checked ingredients. Include the original recipe title and source URL. Each add accepts 1–50 recipes with 1–100 ingredient lines per recipe.
+
+A list-wide empty removes ingredient batches and keeps the list and saved recipe sources. Delayed uploads from before `groceries_cleared_at` are ignored so a previous trip does not reappear. Start a new trip with fresh recipe `updated_at` timestamps and unchecked ingredients. Private staples remain governed by the existing list/account permissions. Read access cannot empty or add ingredients. These operations must appear as `direct` in the connected credential's capabilities; older credentials need one human-approved reconnection for these new operation names.
 
 ## One-time fallback
 

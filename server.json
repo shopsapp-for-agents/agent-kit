@@ -3,7 +3,7 @@
   "name": "io.github.shopsapp-for-agents/shopsapp",
   "title": "ShopsApp",
   "description": "Owner-approved list and account workflows through REST and MCP, with revocable permissions.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "websiteUrl": "https://shopsapp.com/for-agents",
   "repository": {
     "url": "https://github.com/shopsapp-for-agents/agent-kit",

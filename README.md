@@ -27,7 +27,7 @@ The skill's central rules are simple: read only permitted lists, preserve saved 
 
 ## MCP registry metadata
 
-[`server.json`](server.json) describes the v0.4 hosted Streamable HTTP endpoint for the official MCP Registry. On 24 September 2026, the official publisher validated the manifest and an MCP SDK client verified HTTPS, tool discovery and rejection of unauthenticated private calls on both hosted endpoints. Registry publication is pending GitHub authorization for the `shopsapp-for-agents` organization. This manifest describes the remote server only; the local Python bridge remains a smaller compatibility adapter and is not published to a package registry. No agent token belongs in the manifest.
+[`server.json`](server.json) describes the v0.5 hosted Streamable HTTP endpoint for the official MCP Registry. On 24 September 2026, the official publisher validated the manifest and an MCP SDK client verified HTTPS, tool discovery and rejection of unauthenticated private calls on both hosted endpoints. Registry publication is pending GitHub authorization for the `shopsapp-for-agents` organization. This manifest describes the remote server only; the local Python bridge remains a smaller compatibility adapter and is not published to a package registry. No agent token belongs in the manifest.
 
 ## Development
 
@@ -43,6 +43,8 @@ The bridge's tests cover token isolation, exact URL preservation, transport secu
 
 ## Dashboard parity
 
-v0.4 adds `execute_dashboard_action`, backed by the same server-validated workflow catalog as hosted MCP. With a configured token, `get_dashboard_capabilities` sends it securely to return this connection's permissions; without one it returns public schemas. Explicit `dashboard:read` or `dashboard:write` consent at connection time permits account workflows without repeated UI approval. Existing credentials do not expand. The optional one-time request/result tools remain for ungranted actions.
+The bridge exposes `execute_dashboard_action`, backed by the same server-validated workflow catalog as hosted MCP. With a configured token, `get_dashboard_capabilities` sends it securely to return this connection's permissions; without one it returns public schemas. Explicit `dashboard:read` or `dashboard:write` consent at connection time permits account workflows without repeated UI approval. Existing credentials do not expand. The optional one-time request/result tools remain for ungranted actions.
 
-The website is the live source of truth. The matching v0.4 API is deployed. A synthetic approved connection verified direct REST, hosted MCP and stdio MCP workflows without subsequent UI approval on 14 October 2026. Updating source or the manifest does not publish to the MCP Registry. Read [the workflow contract](docs/DASHBOARD.md).
+The website is the live source of truth. The v0.5 integration adds Groceries workflows and the named `export_my_lists_csv` adapter. Production delivery is being verified. A synthetic approved connection verified direct REST, hosted MCP and stdio MCP workflows without subsequent UI approval on 14 October 2026. Updating source or the manifest does not publish to the MCP Registry. Read [the workflow contract](docs/DASHBOARD.md).
+
+The Groceries tab has corresponding `get_my_groceries`, `add_my_groceries`, and `empty_groceries` workflows in the live catalog. CSV exports use `export_my_lists_csv` with existing list-read permissions; a one-list credential stays within that list. Exported CSV is returned to the requesting assistant and is not uploaded or shared. The bridge preserves UTF-8 ingredient text and shopping checks, rejects redirects, and keeps the credential only in its request header.

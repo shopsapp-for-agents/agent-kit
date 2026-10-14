@@ -6,6 +6,7 @@ remote MCP endpoint. It holds no database and never performs checkout.
 """
 
 import os
+from email.message import Message
 from typing import Any, Literal
 from urllib.parse import quote, urlsplit
 
@@ -15,6 +16,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 
 mcp = MCPServer(
     name="ShopsApp",
+    version="0.5.0",
     title="ShopsApp lists",
     description=("Save and read permitted ShopsApp lists; coordinate gifts and return original merchant links."),
     instructions=(
@@ -56,9 +58,13 @@ def _request(
     private: bool = False,
     body: dict[str, Any] | None = None,
     idempotency_key: str | None = None,
+    response_format: Literal["json", "csv"] = "json",
 ) -> dict[str, Any]:
     base_url = _base_url()
-    headers = {"Accept": "application/json", "User-Agent": "shopsapp-agent-kit/0.4"}
+    headers = {
+        "Accept": "text/csv" if response_format == "csv" else "application/json",
+        "User-Agent": "shopsapp-agent-kit/0.5",
+    }
     if private:
         token = os.getenv("SHOPSAPP_TOKEN", "").strip()
         if not token:
@@ -84,6 +90,16 @@ def _request(
         raise ToolError(f"ShopsApp {response.status_code}: {detail}")
     if response.status_code == 204:
         return {}
+    if response_format == "csv":
+        if response.headers.get("content-type", "").split(";", 1)[0].lower() != "text/csv":
+            raise ToolError("ShopsApp returned an unexpected CSV response")
+        disposition = Message()
+        disposition["content-disposition"] = response.headers.get("content-disposition", "")
+        return {
+            "filename": disposition.get_filename() or "shopsapp-lists.csv",
+            "mime_type": "text/csv",
+            "csv": response.text,
+        }
     try:
         result = response.json()
     except ValueError as exc:
@@ -162,6 +178,18 @@ def get_public_product(gtin: str) -> dict[str, Any]:
 @mcp.tool(structured_output=True, description="List the authenticated owner's shopping, wish, and recipe lists.")
 def list_my_lists() -> dict[str, Any]:
     return _request("GET", "/v1/lists", private=True)
+
+
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Export owned lists as UTF-8 CSV when the person requests it. "
+        "Only lists permitted by the configured credential are included. Does not upload or share data."
+    ),
+    annotations={"readOnlyHint": True},
+)
+def export_my_lists_csv() -> dict[str, Any]:
+    return _request("GET", "/v1/me/lists/export", private=True, response_format="csv")
 
 
 @mcp.tool(structured_output=True, description="Read a list when the configured account or grant permits it.")
