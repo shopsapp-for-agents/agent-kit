@@ -24,6 +24,8 @@ The access column describes ordinary list connections. A separately approved acc
 | Read a weekly public-list chart | `GET /v1/charts/lists?week=2026-10-02` | Public; optional Friday edition date, current access/discovery checks |
 | Find matching public saves by GTIN | `GET /v1/products/{gtin}` | Public; only separately opted-in lists, format-checked identifier |
 | Read your dedicated Grocery List list | `GET /v1/me/groceries` | Owner or exact approved read account workflow; returns `{"list":null}` before first use |
+| Add a plain shopping item (including Siri entries) | `PUT /v1/lists/{list_id}/shopping-entries/{entry_id}` | Owner or exact approved manage-account workflow; UUID retries are idempotent |
+| Remove a plain shopping item | `DELETE /v1/lists/{list_id}/shopping-entries/{entry_id}` | Owner or exact approved manage-account workflow; tombstones block stale retries |
 | Add recipe ingredients to Grocery List | `POST /v1/me/groceries` | Owner or exact approved manage account workflow; reuses an owned Grocery List list or creates a private one |
 | Empty recipe ingredients after shopping | `DELETE /v1/lists/{list_id}/groceries` | Owner or exact approved manage account workflow; retains list identity, saved finds, sharing and staple settings |
 | List your lists | `GET /v1/lists` | Account |
