@@ -23,8 +23,8 @@ The access column describes ordinary list connections. A separately approved acc
 | Explore opt-in public saves | `GET /v1/trending?days=7&category=home` | Public; `days` is 7, 14 or 30, category optional |
 | Read a weekly public-list chart | `GET /v1/charts/lists?week=2026-10-02` | Public; optional Friday edition date, current access/discovery checks |
 | Find matching public saves by GTIN | `GET /v1/products/{gtin}` | Public; only separately opted-in lists, format-checked identifier |
-| Read your dedicated Groceries list | `GET /v1/me/groceries` | Owner or exact approved read account workflow; returns `{"list":null}` before first use |
-| Add recipe ingredients to Groceries | `POST /v1/me/groceries` | Owner or exact approved manage account workflow; reuses an owned Groceries list or creates a private one |
+| Read your dedicated Grocery List list | `GET /v1/me/groceries` | Owner or exact approved read account workflow; returns `{"list":null}` before first use |
+| Add recipe ingredients to Grocery List | `POST /v1/me/groceries` | Owner or exact approved manage account workflow; reuses an owned Grocery List list or creates a private one |
 | Empty recipe ingredients after shopping | `DELETE /v1/lists/{list_id}/groceries` | Owner or exact approved manage account workflow; retains list identity, saved finds, sharing and staple settings |
 | List your lists | `GET /v1/lists` | Account |
 | Export owned lists as CSV | `GET /v1/me/lists/export` | Account or approved read/write agent; one-list grants export that list only |
