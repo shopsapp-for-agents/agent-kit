@@ -58,9 +58,11 @@ CSV export is a named MCP/REST representation of permitted list reads, separate 
 
 Catalog product search respects the source's separate permission to supply agents. Samples are labelled. Price/stock data from a feed is not a fresh checkout verification. Recipe-provider rights and configuration are independent of a person's account consent.
 
-## Groceries
+## Grocery List
 
-Use `get_my_groceries` to read the dedicated list, `add_my_groceries` to copy all or selected ingredient lines, and `empty_groceries` with its `list_id` after shopping. They use the same request schemas as the REST routes in [API.md](API.md). The first add reuses the person's existing Groceries list or creates a private one; later adds merge by recipe source URL and preserve checked ingredients. Include the original recipe title and source URL. Each add accepts 1–50 recipes with 1–100 ingredient lines per recipe.
+The web and Flutter navigation labels use **Grocery List**, immediately after **Finds Feed**. Stable routes (`/app/groceries`, `/v1/me/groceries`) and MCP operation IDs remain unchanged. Existing lists named `Groceries` or marked `is_groceries` are reused with their IDs, contents and custom names intact; new dedicated lists are named `Grocery List`.
+
+Use `get_my_groceries` to read the dedicated list, `add_my_groceries` to copy all or selected ingredient lines, and `empty_groceries` with its `list_id` after shopping. They use the same request schemas as the REST routes in [API.md](API.md). The first add reuses the person's existing Grocery List list or creates a private one; later adds merge by recipe source URL and preserve checked ingredients. Include the original recipe title and source URL. Each add accepts 1–50 recipes with 1–100 ingredient lines per recipe.
 
 A list-wide empty removes ingredient batches and keeps the list and saved recipe sources. Delayed uploads from before `groceries_cleared_at` are ignored so a previous trip does not reappear. Start a new trip with fresh recipe `updated_at` timestamps and unchecked ingredients. Private staples remain governed by the existing list/account permissions. Read access cannot empty or add ingredients. These operations must appear as `direct` in the connected credential's capabilities; older credentials need one human-approved reconnection for these new operation names.
 
