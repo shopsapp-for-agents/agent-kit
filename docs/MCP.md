@@ -35,6 +35,7 @@ The hosted server exposes public, scoped-list, delegated account, sharing, reser
 | Find saved items or birthday preferences | `search_accessible_items`, `get_list` |
 | Save a find | `capture_url` |
 | Export approved owned lists as CSV | `export_my_lists_csv` |
+| Inspect Google Sheets sync (all-owned-lists read grant) | `get_google_sheets_sync_status` |
 | Coordinate a gift | `reserve_item`, `release_reservation`, `get_commerce_handoff` |
 | Prepare groceries | `set_recipe_ingredients`, `create_grocery_handoff`, `get_list_grocery_handoff` |
 
@@ -51,6 +52,17 @@ or revoked connection cannot export. It does not upload anything to Google Sheet
 or share the export; sending it elsewhere needs the person's explicit request.
 The CSV is UTF-8 with a BOM, CRLF records and escaped fields. Formula-like text
 is prefixed with an apostrophe so a spreadsheet opens it as text.
+
+`get_google_sheets_sync_status` reports the optional Google Sheets connection,
+selected owned lists, spreadsheet URL, last success and fixed sync errors. It
+requires a read/write credential approved for all owned lists; a one-list,
+add-only or revoked connection cannot inspect this account-wide destination.
+Never infer authority to publish or connect a Google account from a list grant.
+Direct the person to https://shopsapp.com/app/cloud-storage to connect, choose
+lists, sync now, replace a missing spreadsheet or disconnect. These controls
+remain human-only. Each selected list becomes a tab in a user-owned private
+spreadsheet. Google readers see all exported tabs; Sheets edits do not update
+ShopsApp. Google credentials are never included in tool output or prompts.
 
 Buy for a Friend messages include ShopsApp's origin, skill and MCP URLs, a saved
 item's authenticated handoff URL when it has an account item ID, and the chosen

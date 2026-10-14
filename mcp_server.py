@@ -192,6 +192,19 @@ def export_my_lists_csv() -> dict[str, Any]:
     return _request("GET", "/v1/me/lists/export", private=True, response_format="csv")
 
 
+@mcp.tool(
+    structured_output=True,
+    description=(
+        "Read Google Sheets sync status with read/write access to all owned lists. "
+        "The person connects Google, chooses lists, syncs or disconnects in ShopsApp Cloud Storage. "
+        "A list grant does not authorize a new external export."
+    ),
+    annotations={"readOnlyHint": True},
+)
+def get_google_sheets_sync_status() -> dict[str, Any]:
+    return _request("GET", "/v1/me/google-sheets", private=True)
+
+
 @mcp.tool(structured_output=True, description="Read a list when the configured account or grant permits it.")
 def get_list(list_id: str) -> dict[str, Any]:
     return _request("GET", f"/v1/lists/{_segment(list_id)}", private=True)
