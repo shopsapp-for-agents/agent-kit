@@ -109,5 +109,37 @@ choices. Ordinary list access does not include private addresses. Use an address
 the buyer explicitly attaches or requests through an approved address workflow;
 otherwise ask the buyer for it.
 
-Google Sheets sync is a proposed integration, not a current API. See the
-repository's `docs/GOOGLE-SHEETS-SYNC.md` for OAuth, one-way sync and ownership rules.
+## Google Sheets sync
+
+Google Sheets sync is an optional, configured integration. It exports only the
+owner's selected, available cloud lists to a spreadsheet in their Google Drive,
+with one managed tab per list. The owner connects in `/app/cloud-storage` using
+separate Google `drive.file` consent. ShopsApp never changes the spreadsheet's
+sharing. Anyone the owner shares it with can see every exported tab, even a
+private list. Sheets edits are not imported into ShopsApp.
+
+| Operation | Route | Permission |
+| --- | --- | --- |
+| Availability, selected lists and sync status | `GET /v1/me/google-sheets` | Owner, or read/write agent approved for all owned lists |
+| Start Google connection | `POST /v1/me/google-sheets/connect` | Human owner; `list_ids` and `sharing_acknowledged: true` required |
+| Select lists (empty selection pauses all lists) | `PUT /v1/me/google-sheets/lists` | Human owner; `list_ids` contains only owned lists, at most 100 |
+| Queue a fresh sync | `POST /v1/me/google-sheets/sync` | Human owner; 202 means queued, not finished |
+| Create a replacement private spreadsheet | `POST /v1/me/google-sheets/spreadsheet` | Human owner; `confirmation: "CREATE"`; previous Google copy stays |
+| Disconnect and remove the stored Google token | `DELETE /v1/me/google-sheets` | Human owner; Google spreadsheet stays |
+
+Status includes `available`, `connected`, `state`, `job_state`, selected `lists`,
+`spreadsheet_url`, `last_synced_at`, and a fixed `error_code`/message. Credentials,
+Google account identifiers and provider error bodies are never returned. A
+one-list or add-only agent cannot read this account-wide destination; revoked
+credentials cannot read it either. Export controls cannot be delegated through
+an ordinary list grant or an account workflow.
+
+The Google callback is browser-bound, single-use, PKCE-protected and expires in
+ten minutes. Saved credentials are encrypted server-side. List changes enter a
+durable transactional queue and run after commit. Transient failures retry;
+revoked Google consent requires reconnecting. Deleted/deselected list tabs are
+archived with their old data retained, not silently deleted. Disconnect/account
+deletion stops future exports and removes stored tokens; previously exported
+Google copies stay under the owner's Google sharing controls.
+
+See `docs/GOOGLE-SHEETS-SYNC.md` for deployment configuration and worker operation.

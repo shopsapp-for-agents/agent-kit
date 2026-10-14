@@ -8,6 +8,32 @@ from mcp.server.mcpserver.exceptions import ToolError
 import mcp_server
 
 
+def test_google_sheets_status_is_read_only_and_uses_only_the_shopsapp_credential(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_all_owned_reader")
+    expected = {"available": True, "connected": True, "job_state": "up_to_date", "lists": []}
+
+    def handler(request):
+        assert request.method == "GET"
+        assert request.url.path == "/v1/me/google-sheets"
+        assert request.headers["Authorization"] == "Bearer ak_all_owned_reader"
+        return httpx.Response(200, json=expected)
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.get_google_sheets_sync_status() == expected
+    tool = next(tool for tool in asyncio.run(mcp_server.mcp.list_tools())
+                if tool.name == "get_google_sheets_sync_status")
+    assert tool.annotations.model_dump(by_alias=True)["readOnlyHint"] is True
+
+
+def test_google_sheets_status_preserves_the_server_all_owned_lists_boundary(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_one_list_reader")
+    mock_client(monkeypatch, lambda request: httpx.Response(
+        403, json={"detail": "Google Sheets status needs access to all owned lists"},
+    ))
+    with pytest.raises(ToolError, match="403.*all owned lists"):
+        mcp_server.get_google_sheets_sync_status()
+
+
 def mock_client(monkeypatch, handler):
     transport = httpx.MockTransport(handler)
     monkeypatch.setattr(
@@ -141,6 +167,7 @@ def test_mcp_exposes_core_tools():
         "get_public_profile",
         "list_my_lists",
         "export_my_lists_csv",
+        "get_google_sheets_sync_status",
         "capture_url",
         "search_my_recipes",
         "update_recipe",
