@@ -51,13 +51,17 @@ def test_agent_pairing_starts_without_owner_token(monkeypatch):
     def handler(request):
         assert request.url.path == "/v1/agent-pairings"
         assert "Authorization" not in request.headers
-        assert json.loads(request.content) == {"agent_name": "My assistant", "requested_access": "write"}
+        assert json.loads(request.content) == {
+            "agent_name": "My assistant",
+            "requested_access": "write",
+            "requested_dashboard_access": "write",
+        }
         return httpx.Response(
             201, json={"approval_url": "https://shopsapp.com/app?pair=1", "request_secret": "pr_secret"}
         )
 
     mock_client(monkeypatch, handler)
-    assert mcp_server.start_agent_pairing("My assistant", "write")["request_secret"] == "pr_secret"
+    assert mcp_server.start_agent_pairing("My assistant", "write", "write")["request_secret"] == "pr_secret"
 
 
 def test_private_capture_preserves_exact_url_and_idempotency(monkeypatch):
@@ -133,8 +137,7 @@ def test_mcp_exposes_core_tools():
     names = {tool.name for tool in asyncio.run(mcp_server.mcp.list_tools())}
     assert {
         "start_account_signup",
-        "start_agent_pairing",
-        "exchange_agent_pairing",
+        "execute_dashboard_action",
         "get_public_profile",
         "list_my_lists",
         "capture_url",
@@ -146,12 +149,12 @@ def test_mcp_exposes_core_tools():
     } <= names
 
 
-def test_dashboard_workflow_keeps_private_token_off_public_catalog(monkeypatch):
+def test_dashboard_workflow_uses_configured_credential_for_permission_discovery(monkeypatch):
     monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_agent")
 
     def handler(request):
         if request.url.path == "/v1/agent-dashboard/capabilities":
-            assert "Authorization" not in request.headers
+            assert request.headers["Authorization"] == "Bearer ak_agent"
             assert request.url.params["category"] == "sharing"
             return httpx.Response(200, json={"operations": []})
         assert request.headers["Authorization"] == "Bearer ak_agent"
@@ -187,3 +190,41 @@ def test_dashboard_workflow_keeps_private_token_off_public_catalog(monkeypatch):
         "lookup_barcode",
         "get_public_list_leaderboard",
     } <= names
+
+
+def test_credential_issuing_helpers_are_not_model_tools():
+    names = {tool.name for tool in asyncio.run(mcp_server.mcp.list_tools())}
+    assert "start_agent_pairing" not in names
+    assert "exchange_agent_pairing" not in names
+
+
+def test_delegated_execution_keeps_token_in_header_and_passes_exact_arguments(monkeypatch):
+    monkeypatch.setenv("SHOPSAPP_TOKEN", "ak_agent")
+
+    def handler(request):
+        assert request.url.path == "/v1/agent-dashboard/execute"
+        assert request.headers["Authorization"] == "Bearer ak_agent"
+        assert json.loads(request.content) == {
+            "operation": "edit_list",
+            "arguments": {"list_id": "one", "body": {"title": "New"}},
+        }
+        assert "ak_agent" not in str(request.url)
+        assert b"ak_agent" not in request.content
+        return httpx.Response(200, json={"operation": "edit_list", "data": {"title": "New"}})
+
+    mock_client(monkeypatch, handler)
+    assert (
+        mcp_server.execute_dashboard_action("edit_list", {"list_id": "one", "body": {"title": "New"}})["data"]["title"]
+        == "New"
+    )
+
+
+def test_catalog_without_a_configured_credential_remains_public(monkeypatch):
+    monkeypatch.delenv("SHOPSAPP_TOKEN", raising=False)
+
+    def handler(request):
+        assert "Authorization" not in request.headers
+        return httpx.Response(200, json={"operations": []})
+
+    mock_client(monkeypatch, handler)
+    assert mcp_server.get_dashboard_capabilities() == {"operations": []}
