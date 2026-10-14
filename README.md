@@ -45,4 +45,4 @@ The bridge's tests cover token isolation, exact URL preservation, transport secu
 
 v0.4 adds `execute_dashboard_action`, backed by the same server-validated workflow catalog as hosted MCP. With a configured token, `get_dashboard_capabilities` sends it securely to return this connection's permissions; without one it returns public schemas. Explicit `dashboard:read` or `dashboard:write` consent at connection time permits account workflows without repeated UI approval. Existing credentials do not expand. The optional one-time request/result tools remain for ungranted actions.
 
-The website is the live source of truth. This local candidate requires the matching v0.4 API deployment for direct execution. Updating source or the manifest does not publish to the MCP Registry. Read [the workflow contract](docs/DASHBOARD.md).
+The website is the live source of truth. The matching v0.4 API is deployed. A synthetic approved connection verified direct REST, hosted MCP and stdio MCP workflows without subsequent UI approval on 14 October 2026. Updating source or the manifest does not publish to the MCP Registry. Read [the workflow contract](docs/DASHBOARD.md).
